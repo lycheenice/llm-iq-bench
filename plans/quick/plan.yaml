@@ -1,0 +1,8 @@
+name: quick
+description: 快速冒烟方案（可在 mock 模型 + 内置数据下离线跑通；真实模型取小样本）。
+model: mock
+tasks:
+  - {benchmark: demo_mc,  n: 6}
+  - {benchmark: demo_qa,  n: 6}
+  - {benchmark: knowledge_mmlu, n: 20}
+  - {benchmark: reasoning_gsm8k, n: 20}

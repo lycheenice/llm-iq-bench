@@ -1,0 +1,9 @@
+name: reasoning_deep
+description: 推理深度专项（数学天花板 + 难推理）。
+model: gpt-4o
+tasks:
+  - {benchmark: reasoning_math,  n: 500}
+  - {benchmark: reasoning_aime,  n: 30}
+  - {benchmark: reasoning_bbh,   n: 300}
+  - {benchmark: knowledge_gpqa,  n: 200}
+  - {benchmark: reasoning_arc,   n: 500}

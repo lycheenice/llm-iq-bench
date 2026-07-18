@@ -1,0 +1,190 @@
+benchmarks:
+  knowledge_mmlu:
+    dataset: mmlu
+    metric: accuracy_mc
+    prompt_template: knowledge_mc
+    params: {temperature: 0, max_tokens: 16}
+
+  knowledge_mmlu_pro:
+    dataset: mmlu_pro
+    metric: accuracy_mc
+    prompt_template: knowledge_mc
+    params: {temperature: 0, max_tokens: 16}
+
+  knowledge_c_eval:
+    dataset: c_eval
+    metric: accuracy_mc
+    prompt_template: knowledge_mc_cn
+    params: {temperature: 0, max_tokens: 16}
+
+  knowledge_gpqa:
+    dataset: gpqa
+    metric: accuracy_mc
+    prompt_template: knowledge_mc
+    params: {temperature: 0, max_tokens: 16}
+
+  reasoning_gsm8k:
+    dataset: gsm8k
+    metric: exact_match_numeric
+    answer_extractor: last_number
+    prompt_template: reasoning_qa
+    params: {temperature: 0, max_tokens: 512}
+
+  reasoning_math:
+    dataset: math
+    metric: exact_match_boxed
+    answer_extractor: boxed
+    prompt_template: reasoning_qa
+    params: {temperature: 0, max_tokens: 1024}
+
+  reasoning_aime:
+    dataset: aime
+    metric: exact_match_numeric
+    answer_extractor: last_number
+    prompt_template: reasoning_qa
+    params: {temperature: 0.7, max_tokens: 2048, n: 4}
+
+  reasoning_bbh:
+    dataset: bbh
+    metric: exact_match_text
+    prompt_template: reasoning_qa
+    params: {temperature: 0, max_tokens: 256}
+
+  reasoning_arc:
+    dataset: arc_challenge
+    metric: accuracy_mc
+    prompt_template: knowledge_mc
+    params: {temperature: 0, max_tokens: 16}
+
+  coding_humaneval:
+    dataset: humaneval
+    metric: pass_at_1
+    runner: code_exec
+    prompt_template: code_complete
+    params: {temperature: 0, max_tokens: 4096, concurrency: 8}
+
+  coding_mbpp:
+    dataset: mbpp
+    metric: pass_at_1
+    runner: code_exec
+    prompt_template: mbpp_task
+    params: {temperature: 0, max_tokens: 4096, concurrency: 8}
+
+  coding_humaneval_t02:
+    dataset: humaneval
+    metric: pass_at_1
+    runner: code_exec
+    prompt_template: code_complete
+    params: {temperature: 0.2, max_tokens: 4096, concurrency: 8}
+
+  coding_mbpp_t02:
+    dataset: mbpp
+    metric: pass_at_1
+    runner: code_exec
+    prompt_template: mbpp_task
+    params: {temperature: 0.2, max_tokens: 4096, concurrency: 8}
+
+  coding_livecodebench:
+    dataset: livecodebench
+    metric: pass_at_1
+    runner: code_exec
+    prompt_template: code_complete
+    params: {temperature: 0, max_tokens: 1024}
+
+  coding_swe_bench:
+    dataset: swe_bench_verified
+    metric: swe_resolved
+    runner: swe_docker
+    prompt_template: swe_resolve
+    params: {temperature: 0, max_tokens: 4096}
+
+  ifeval_strict:
+    dataset: ifeval
+    metric: ifeval_strict
+    prompt_template: raw
+    params: {temperature: 0, max_tokens: 1024}
+
+  mt_bench:
+    dataset: mt_bench
+    metric: llm_judge
+    judge_model: gpt-4o
+    prompt_template: raw
+    params: {temperature: 0, max_tokens: 1024}
+
+  safety_truthfulqa:
+    dataset: truthfulqa
+    metric: truthfulqa_mc1
+    prompt_template: raw
+    params: {temperature: 0, max_tokens: 64}
+
+  safety_advbench:
+    dataset: advbench
+    metric: refusal_rate
+    prompt_template: raw
+    params: {temperature: 0, max_tokens: 256}
+
+  safety_xstest:
+    dataset: xstest
+    metric: over_refusal_rate
+    prompt_template: raw
+    params: {temperature: 0, max_tokens: 256}
+
+  safety_bbq:
+    dataset: bbq
+    metric: accuracy_mc
+    prompt_template: knowledge_mc
+    params: {temperature: 0, max_tokens: 16}
+
+  agent_bfcl:
+    dataset: bfcl
+    metric: function_call_accuracy
+    runner: function_exec
+    prompt_template: function_call
+    params: {temperature: 0, max_tokens: 2048, concurrency: 8, categories: [simple, multiple, parallel, irrelevance]}
+
+  agent_gaia:
+    dataset: gaia
+    metric: exact_match_text
+    runner: agent_loop
+    prompt_template: agent_task
+    params: {temperature: 0, max_tokens: 2048}
+
+  multilingual_mgsm:
+    dataset: mgsm
+    metric: exact_match_numeric
+    answer_extractor: last_number
+    prompt_template: reasoning_qa
+    params: {temperature: 0, max_tokens: 512}
+
+  long_longbench:
+    dataset: longbench
+    metric: f1
+    prompt_template: long_qa
+    params: {temperature: 0, max_tokens: 256}
+
+  long_needle:
+    dataset: needle
+    metric: exact_match_text
+    runner: needle_gen
+    prompt_template: long_qa
+    params: {temperature: 0, max_tokens: 512, concurrency: 6, lengths: [4000, 16000, 32000], depths: [0.1, 0.5, 0.9]}
+
+  long_needle_stress:
+    dataset: needle
+    metric: exact_match_text
+    runner: needle_gen
+    prompt_template: long_qa
+    params: {temperature: 0, max_tokens: 512, concurrency: 3, lengths: [64000, 128000, 200000], depths: [0.1, 0.5, 0.9]}
+
+  demo_mc:
+    dataset: demo_mc
+    metric: accuracy_mc
+    prompt_template: knowledge_mc
+    params: {temperature: 0, max_tokens: 16}
+
+  demo_qa:
+    dataset: demo_qa
+    metric: exact_match_numeric
+    answer_extractor: last_number
+    prompt_template: reasoning_qa
+    params: {temperature: 0, max_tokens: 256}

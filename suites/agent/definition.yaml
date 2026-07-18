@@ -1,0 +1,13 @@
+title: Agent / 工具调用 / 多步任务
+dim: agent
+description: 函数调用正确性、多步任务规划与端到端执行。
+datasets: [bfcl, gaia]
+metrics: [function_call_accuracy, exact_match_text]
+runners: [function_exec, agent_loop]
+default_params: {temperature: 0, max_tokens: 2048}
+prompt_templates: [function_call, agent_task]
+scoring: BFCL 函数调用准确率；GAIA/τ-bench 端到端任务成功率。
+notes:
+  - 须真实工具/tool-use 环境，结果方差大，建议多次取均值并报方差。
+  - τ-bench/AgentBench 可作为补充；GAIA 需联网/文件工具。
+  - 详见 scripts/run_bfcl.py / scripts/run_agent_eval.py（待实现）。

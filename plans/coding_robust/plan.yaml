@@ -1,0 +1,6 @@
+name: coding_robust
+description: 编码能力鲁棒性 — temperature=0.2 下重跑 HumanEval+MBPP，与 baseline(temp=0) 对照看随机性影响。
+model: glm-local
+tasks:
+  - {benchmark: coding_humaneval_t02, n: 80}
+  - {benchmark: coding_mbpp_t02,       n: 60}

@@ -1,0 +1,12 @@
+title: 指令遵循与对话质量
+dim: instruction_following
+description: 可验证格式约束的指令遵循、多轮连贯、对齐偏好。
+datasets: [ifeval, mt_bench]
+metrics: [ifeval_strict, llm_judge]
+default_params: {temperature: 0, max_tokens: 1024}
+prompt_templates: [raw]
+scoring: IFEval strict/loose 两档准确率；MT-Bench 用 GPT-4 判 1-10 分。
+notes:
+  - LLM-as-Judge 须固定裁判模型与 prompt，报告裁判版本。
+  - IFEval 须逐条校验可验证指令，见 scripts/run_ifeval.py。
+  - 可选接入 AlpacaEval 做胜率对比。

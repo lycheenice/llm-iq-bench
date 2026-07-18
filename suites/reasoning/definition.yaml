@@ -1,0 +1,12 @@
+title: 数学与推理
+dim: reasoning
+description: 多步算术、符号推理、竞赛数学能力。
+datasets: [gsm8k, math, aime, bbh, arc_challenge]
+metrics: [exact_match_numeric, exact_match_boxed, exact_match_text]
+answer_extractors: [last_number, boxed]
+default_params: {temperature: 0, max_tokens: 1024}
+prompt_templates: [reasoning_qa]
+scoring: 最终答案准确率；AIME 等高方差任务多次采样取 pass@k。
+notes:
+  - 统一 answer extraction，避免 \boxed{} / "The answer is X" 格式差异造成假阴性。
+  - AIME 建议.temperature=0.7, n>=4 取多数/任一正确。

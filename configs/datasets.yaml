@@ -1,0 +1,266 @@
+datasets:
+  mmlu:
+    dim: knowledge
+    source: huggingface
+    repo: cais/mmlu
+    name: all
+    split: test
+    version: latest
+    license: MIT
+    fields: {question: question, choices: choices, gold: answer}
+    n_default: 500
+
+  mmlu_pro:
+    dim: knowledge
+    source: huggingface
+    repo: TIGER-Lab/MMLU-Pro
+    split: validation
+    version: latest
+    license: MIT
+    fields: {question: question, choices: options, gold: answer_index}
+    n_default: 500
+
+  c_eval:
+    dim: knowledge
+    source: huggingface
+    repo: ceval/ceval-exam
+    split: val
+    version: latest
+    license: CC-BY-NC-SA
+    fields: {question: question, choices: choices, gold: answer}
+    n_default: 500
+
+  gpqa:
+    dim: knowledge
+    source: huggingface
+    repo: Idavidrein/gpqa
+    name: gpqa_main
+    split: train
+    version: latest
+    license: CC-BY-NC
+    fields: {question: question, choices: choices, gold: answer}
+    n_default: 200
+
+  gsm8k:
+    dim: reasoning
+    source: huggingface
+    repo: openai/gsm8k
+    name: main
+    split: test
+    version: latest
+    license: MIT
+    fields: {question: question, gold: answer_numeric}
+    n_default: 500
+
+  math:
+    dim: reasoning
+    source: huggingface
+    repo: lighteval/MATH
+    split: test
+    version: latest
+    license: MIT
+    fields: {question: problem, gold: solution}
+    n_default: 500
+
+  aime:
+    dim: reasoning
+    source: huggingface
+    repo: Maxwell-Jia/AIME_2024
+    split: train
+    version: latest
+    license: CC-BY-NC
+    fields: {question: Problem, gold: Answer}
+    n_default: 30
+
+  bbh:
+    dim: reasoning
+    source: huggingface
+    repo: lukaemon/bbh
+    split: test
+    version: latest
+    license: MIT
+    fields: {question: input, gold: target}
+    n_default: 300
+
+  arc_challenge:
+    dim: reasoning
+    source: huggingface
+    repo: allenai/ai2_arc
+    name: ARC-Challenge
+    split: test
+    version: latest
+    license: CC-BY
+    fields: {question: question, choices: choices, gold: answerKey}
+    n_default: 500
+
+  humaneval:
+    dim: coding
+    source: local
+    repo: /data1/datasets/humaneval/HumanEval.jsonl.gz
+    split: test
+    version: 2023-openai
+    license: MIT
+    fields: {prompt: prompt, gold: test, entry_point: entry_point}
+    n_default: 164
+
+  mbpp:
+    dim: coding
+    source: local
+    repo: /data1/datasets/mbpp/mbpp.jsonl
+    split: test
+    version: 2021-google
+    license: CC-BY
+    fields: {prompt: text, gold: test_list, entry_point: task_id}
+    n_default: 500
+
+  livecodebench:
+    dim: coding
+    source: huggingface
+    repo: livecodebench/livecodebench
+    split: test
+    version: latest
+    license: MIT
+    fields: {prompt: question_content, gold: evaluation}
+    n_default: 200
+
+  swe_bench_verified:
+    dim: coding
+    source: huggingface
+    repo: princeton-nlp/SWE-bench_Verified
+    split: test
+    version: latest
+    license: MIT
+    fields: {repo: repo, instance_id: instance_id, gold: FAIL_TO_PASS}
+    n_default: 100
+
+  ifeval:
+    dim: instruction_following
+    source: huggingface
+    repo: google/IFEval
+    split: train
+    version: latest
+    license: CC-BY
+    fields: {prompt: prompt, gold: instruction_id_list}
+    n_default: 500
+
+  mt_bench:
+    dim: instruction_following
+    source: local
+    repo: scripts/assets/mt_bench.jsonl
+    split: test
+    version: 1.0
+    license: CC-BY
+    fields: {prompt: prompt, gold: null}
+    n_default: 80
+
+  truthfulqa:
+    dim: safety
+    source: huggingface
+    repo: truthfulqa/truthfulqa
+    name: multiple_choice
+    split: validation
+    version: latest
+    license: CC-BY-NC
+    fields: {question: question, choices: mc1_targets, gold: null}
+    n_default: 500
+
+  advbench:
+    dim: safety
+    source: huggingface
+    repo: walledai/AdvBench
+    split: train
+    version: latest
+    license: MIT
+    fields: {question: prompt, gold: null}
+    n_default: 500
+
+  xstest:
+    dim: safety
+    source: huggingface
+    repo: walledai/XSTest
+    split: train
+    version: latest
+    license: CC-BY
+    fields: {question: prompt, gold: type}
+    n_default: 250
+
+  bbq:
+    dim: safety
+    source: huggingface
+    repo: Allenai/bbq
+    split: test
+    version: latest
+    license: CC-BY
+    fields: {question: question, choices: choices, gold: answer}
+    n_default: 500
+
+  bfcl:
+    dim: agent
+    source: local
+    repo: /data1/datasets/bfcl
+    split: test
+    version: v3
+    license: CC-BY
+    fields: {prompt: question, gold: id}
+    categories: [simple, multiple, parallel, irrelevance]
+    n_default: 200
+
+  gaia:
+    dim: agent
+    source: huggingface
+    repo: gaia-benchmark/GAIA
+    split: test
+    version: latest
+    license: CC-BY-NC
+    fields: {question: Question, gold: Final answer}
+    n_default: 100
+
+  mgsm:
+    dim: multilingual
+    source: huggingface
+    repo: juletxha/mgsm
+    split: test
+    version: latest
+    license: MIT
+    fields: {question: question, gold: answer_number}
+    n_default: 500
+
+  longbench:
+    dim: long_context
+    source: huggingface
+    repo: THUDM/LongBench
+    split: test
+    version: latest
+    license: MIT
+    fields: {context: context, question: input, gold: answers}
+    n_default: 200
+
+  needle:
+    dim: long_context
+    source: local
+    repo: builtin:needle
+    split: generated
+    version: 1.0
+    license: MIT
+    fields: {context: context, question: question, gold: needle}
+    n_default: 9
+
+  demo_mc:
+    dim: knowledge
+    source: builtin
+    repo: builtin:demo_mc
+    split: demo
+    version: 1.0
+    license: MIT
+    fields: {question: question, choices: choices, gold: answer}
+    n_default: 6
+
+  demo_qa:
+    dim: reasoning
+    source: builtin
+    repo: builtin:demo_qa
+    split: demo
+    version: 1.0
+    license: MIT
+    fields: {question: question, gold: answer}
+    n_default: 6

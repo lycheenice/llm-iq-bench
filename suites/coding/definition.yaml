@@ -1,0 +1,13 @@
+title: 代码能力
+dim: coding
+description: 函数级代码生成、多语言、真实软件工程。
+datasets: [humaneval, mbpp, livecodebench, swe_bench_verified]
+metrics: [pass_at_1, swe_resolved]
+runners: [code_exec, swe_docker]
+default_params: {temperature: 0, max_tokens: 1024}
+prompt_templates: [code_complete, swe_resolve]
+scoring: pass@1 = 通过测试用例的样本占比；SWE-bench = 单测 FAIL_TO_PASS 转 PASS 的比例。
+notes:
+  - 代码执行必须在沙箱（docker/容器）中，禁止直接主机执行。
+  - SWE-bench Verified 需为每个实例准备对应 repo 环境，耗时大，建议小样本。
+  - 详见 scripts/run_code_eval.py / scripts/run_swe_eval.py（待实现）。

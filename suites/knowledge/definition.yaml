@@ -1,0 +1,12 @@
+title: 知识广度
+dim: knowledge
+description: 跨学科事实性知识与基础应用能力。
+datasets: [mmlu, mmlu_pro, c_eval, gpqa]
+metrics: [accuracy_mc]
+default_params: {temperature: 0, max_tokens: 16}
+prompt_templates: [knowledge_mc, knowledge_mc_cn]
+scoring: 各数据集 accuracy 等权平均。
+notes:
+  - GPQA 为研究生级防搜索题，用于天花板探测，样本量宜小。
+  - 中文场景优先 c_eval/cmmlu，英文场景 mmlu。
+license_notice: 数据集各自 license 见 configs/datasets.yaml，多含 CC-BY-NC。

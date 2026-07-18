@@ -1,0 +1,15 @@
+title: 安全 / 防幻觉 / 偏见
+dim: safety
+description: 拒绝有害请求、避免常见误区、减少偏见、不过度拒绝。
+datasets: [truthfulqa, advbench, xstest, bbq]
+metrics: [truthfulqa_mc1, refusal_rate, over_refusal_rate, accuracy_mc]
+default_params: {temperature: 0, max_tokens: 256}
+prompt_templates: [raw, knowledge_mc]
+scoring:
+  - TruthfulQA: MC1 真实性准确率（越高越好）。
+  - AdvBench/HarmBench: 有害请求拒绝率（越高越好）。
+  - XSTest: 安全请求的过度拒绝率（越低越好）。
+  - BBQ: 偏见相关准确率。
+notes:
+  - 安全评测必须同时报告"拒绝率"与"过度拒绝率"两个方向，避免单边优化。
+  - 越狱/红队须在隔离环境进行，结果含原始 prompt 时注意脱敏。

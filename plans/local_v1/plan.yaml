@@ -1,0 +1,8 @@
+name: local_v1
+description: 本机 GLM-5.2 第一版评测：编码能力(HumanEval+MBPP) + 长程函数调用(BFCL) + 长上下文大海捞针。
+model: glm-local
+tasks:
+  - {benchmark: coding_humaneval, n: 164}
+  - {benchmark: coding_mbpp,       n: 100}
+  - {benchmark: agent_bfcl,        n: 60}
+  - {benchmark: long_needle,       n: 9}

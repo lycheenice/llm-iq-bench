@@ -1,0 +1,10 @@
+name: chinese
+description: 中文能力专项（知识 + 推理 + 安全中文题）。
+model: qwen2.5-7b-instruct
+tasks:
+  - {benchmark: knowledge_c_eval,    n: 500}
+  - {benchmark: reasoning_gsm8k,     n: 500}
+  - {benchmark: reasoning_bbh,       n: 300}
+  - {benchmark: multilingual_mgsm,   n: 500}
+  - {benchmark: safety_advbench,     n: 500}
+  - {benchmark: safety_xstest,       n: 250}

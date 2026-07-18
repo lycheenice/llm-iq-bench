@@ -1,0 +1,43 @@
+models:
+  mock:
+    provider: mock
+    context_length: 4096
+    default_params: {temperature: 0, max_tokens: 256}
+
+  glm-local:
+    provider: openai
+    api_model_id: glm
+    base_url: http://localhost:8001/v1
+    api_key_env: ""
+    context_length: 300000
+    default_params: {temperature: 0, max_tokens: 4096}
+
+  gpt-4o-mini:
+    provider: openai
+    api_model_id: gpt-4o-mini
+    base_url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    api_key_env: OPENAI_API_KEY
+    context_length: 128000
+    default_params: {temperature: 0, max_tokens: 1024}
+
+  gpt-4o:
+    provider: openai
+    api_model_id: gpt-4o
+    base_url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    api_key_env: OPENAI_API_KEY
+    context_length: 128000
+    default_params: {temperature: 0, max_tokens: 4096}
+
+  qwen2.5-7b-instruct:
+    provider: openai
+    api_model_id: qwen2.5-7b-instruct
+    api_key_env: OPENAI_API_KEY
+    context_length: 32768
+    default_params: {temperature: 0, max_tokens: 2048}
+
+  deepseek-v3:
+    provider: openai
+    api_model_id: deepseek-v3
+    api_key_env: DEEPSEEK_API_KEY
+    context_length: 64000
+    default_params: {temperature: 0, max_tokens: 4096}
