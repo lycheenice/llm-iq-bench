@@ -1,0 +1,16 @@
+{
+  "plan": "needle_stress",
+  "model": "glm-local",
+  "timestamp": "20260718T163755Z",
+  "tasks": {
+    "long_needle_stress": {
+      "metric": "exact_match_text",
+      "score": 0.6667,
+      "n": 9,
+      "total": 9,
+      "benchmark": "long_needle_stress"
+    }
+  },
+  "tag": null,
+  "run_dir": "results/needle_stress_glm-local_20260718T163755Z"
+}

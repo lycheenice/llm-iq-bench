@@ -116,9 +116,25 @@ def run_code_exec(runner, bench: dict, spec: dict, n, samples_file) -> dict:
 
 def _render_code_prompt(template: str, sample: dict, fields: dict) -> str:
     if template == "mbpp_task":
-        return f"Write a Python function to solve the following task. Only output code, no explanation.\n\n{sample[fields.get('prompt','text')]}"
+        task = sample[fields.get("prompt", "text")]
+        ep = _mbpp_expected_fn(sample, fields)
+        hint = f"\n\nThe function must be named `{ep}`." if ep else ""
+        return f"Write a Python function to solve the following task. Only output code, no explanation.{hint}\n\n{task}"
     prompt_text = sample.get(fields.get("prompt", "prompt"), "")
     return f"Complete the following Python function. Only output code, no explanation.\n\n{prompt_text}"
+
+
+def _mbpp_expected_fn(sample: dict, fields: dict) -> str:
+    """从 MBPP 的 canonical code / test_list 推断期望的函数名。"""
+    code = sample.get("code") or ""
+    m = re.search(r"def\s+(\w+)\s*\(", code)
+    if m:
+        return m.group(1)
+    for t in sample.get(fields.get("gold", "test_list"), []) or []:
+        m = re.match(r"assert\s+(\w+)\s*\(", str(t))
+        if m:
+            return m.group(1)
+    return ""
 
 
 def _extract_code(pred: str) -> str:

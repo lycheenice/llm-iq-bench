@@ -1,0 +1,37 @@
+{
+  "plan": "local_v1",
+  "model": "glm-local",
+  "timestamp": "20260718T171259Z",
+  "tasks": {
+    "coding_humaneval": {
+      "metric": "pass_at_1",
+      "score": 0.8537,
+      "n": 164,
+      "total": 164,
+      "benchmark": "coding_humaneval"
+    },
+    "coding_mbpp": {
+      "metric": "pass_at_1",
+      "score": 0.46,
+      "n": 100,
+      "total": 100,
+      "benchmark": "coding_mbpp"
+    },
+    "agent_bfcl": {
+      "metric": "function_call_accuracy",
+      "score": 0.9167,
+      "n": 60,
+      "total": 60,
+      "benchmark": "agent_bfcl"
+    },
+    "long_needle": {
+      "metric": "exact_match_text",
+      "score": 1.0,
+      "n": 9,
+      "total": 9,
+      "benchmark": "long_needle"
+    }
+  },
+  "tag": null,
+  "run_dir": "/home/lychee/mycode/llm-iq-bench/results/local_v1_glm-local_20260718T171259Z"
+}

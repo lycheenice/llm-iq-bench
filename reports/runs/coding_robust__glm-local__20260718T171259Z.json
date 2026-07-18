@@ -1,0 +1,23 @@
+{
+  "plan": "coding_robust",
+  "model": "glm-local",
+  "timestamp": "20260718T171259Z",
+  "tasks": {
+    "coding_humaneval_t02": {
+      "metric": "pass_at_1",
+      "score": 0.8125,
+      "n": 80,
+      "total": 80,
+      "benchmark": "coding_humaneval_t02"
+    },
+    "coding_mbpp_t02": {
+      "metric": "pass_at_1",
+      "score": 0.4833,
+      "n": 60,
+      "total": 60,
+      "benchmark": "coding_mbpp_t02"
+    }
+  },
+  "tag": null,
+  "run_dir": "/home/lychee/mycode/llm-iq-bench/results/coding_robust_glm-local_20260718T171259Z"
+}

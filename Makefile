@@ -1,4 +1,4 @@
-.PHONY: install demo test list run report clean
+.PHONY: install demo test list run report compare clean
 
 install:
 	pip install -r requirements.txt
@@ -18,6 +18,9 @@ run:
 
 report:
 	python scripts/generate_report.py --results $(RESULTS) --out $(OUT)
+
+compare:
+	python scripts/compare_reports.py
 
 clean:
 	rm -rf results/* datasets/**/cache

@@ -84,6 +84,14 @@ class Runner:
         with open(summary_path, "w", encoding="utf-8") as f:
             json.dump(summary, f, ensure_ascii=False, indent=2)
         print(f"\n结果已写入: {run_dir}")
+
+        try:
+            from .reporter import emit_run_report
+            md_path = emit_run_report(summary, run_dir, tag=plan.get("tag"))
+            print(f"报告已生成: {md_path.relative_to(ROOT)}  (tracked, 供对比)")
+        except Exception as e:
+            print(f"[warn] 报告生成失败: {e}")
+
         self._print_summary(summary)
         return summary
 
