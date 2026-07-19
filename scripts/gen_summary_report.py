@@ -32,7 +32,7 @@ def latest_per_plan(runs):
 def bench_scores(run):
     res = {}
     for bid, t in run.get("tasks", {}).items():
-        if not t.get("skipped"):
+        if not t.get("skipped") and not t.get("errored"):
             res[bid] = (t.get("score", 0.0), t.get("n", 0))
     return res
 
@@ -86,7 +86,7 @@ def main():
     for bid, label in [("coding_humaneval","HumanEval"),("coding_mbpp","MBPP"),
                        ("agent_bfcl","BFCL 函数调用"),("long_needle","Needle 4-32k")]:
         t = lv1.get(bid)
-        if t and not t.get("skipped"):
+        if t and not t.get("skipped") and not t.get("errored"):
             items.append((label, t["score"]))
     hbars = hbars_chart(items, title="GLM-5.2 local_v1 各任务得分", fname="lv1_hbars.svg")
     # 4) needle 热力图（取 needle_stress）
@@ -122,9 +122,9 @@ def main():
     for bid, label in [("coding_humaneval","HumanEval (pass@1)"),("coding_mbpp","MBPP (pass@1)"),
                        ("agent_bfcl","BFCL 函数调用"),("long_needle","Needle 4-32k")]:
         t = lv1.get(bid, {})
-        if t and not t.get("skipped"):
+        if t and not t.get("skipped") and not t.get("errored"):
             lines.append(f"| {label} | {t.get('metric','')} | {fmt_pct(t['score'])} | {t.get('n',0)} |")
-    overall = sum(t["score"] for t in lv1.values() if not t.get("skipped")) / max(1, sum(1 for t in lv1.values() if not t.get("skipped")))
+    overall = sum(t["score"] for t in lv1.values() if not t.get("skipped") and not t.get("errored")) / max(1, sum(1 for t in lv1.values() if not t.get("skipped") and not t.get("errored")))
     lines += ["", f"**综合得分（已跑任务均分）: {fmt_pct(overall)}**", ""]
 
     # 温度对比
@@ -153,7 +153,7 @@ def main():
               "| Plan | 时间 | 任务数 | 综合 |",
               "|---|---|---|---|"]
     for r in sorted(runs, key=lambda x: (x["plan"], x["timestamp"])):
-        sc = [t for t in r.get("tasks", {}).values() if not t.get("skipped")]
+        sc = [t for t in r.get("tasks", {}).values() if not t.get("skipped") and not t.get("errored")]
         ov = sum(t["score"] for t in sc)/len(sc) if sc else 0
         lines.append(f"| {r['plan']} | {r['timestamp']} | {len(sc)} | {fmt_pct(ov)} |")
 
@@ -180,10 +180,10 @@ def variance_section(runs):
         from statistics import mean, pstdev
         all_bids = set()
         for r in rs:
-            all_bids |= {b for b, t in r["tasks"].items() if not t.get("skipped")}
+            all_bids |= {b for b, t in r["tasks"].items() if not t.get("skipped") and not t.get("errored")}
         for bid in sorted(all_bids):
             scores = [r["tasks"][bid]["score"] for r in rs
-                      if bid in r["tasks"] and not r["tasks"][bid].get("skipped")]
+                      if bid in r["tasks"] and not r["tasks"][bid].get("skipped") and not r["tasks"][bid].get("errored")]
             if len(scores) < 2:
                 continue
             rng = max(scores) - min(scores)

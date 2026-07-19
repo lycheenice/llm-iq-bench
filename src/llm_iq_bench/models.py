@@ -15,6 +15,7 @@ class ModelClient:
 
     generate() 返回纯文本；generate_with_tools() 返回工具调用结构。
     本类不依赖 openai 库，直接走 HTTP，兼容 sglang / vllm / OpenAI 官方。
+    seed 由 runner 注入（plan 顶层或 CLI），贯通 mock / openai 两条路径。
     """
     model_id: str
     provider: str
@@ -22,11 +23,12 @@ class ModelClient:
     base_url: str = ""
     api_key: str = ""
     params: dict = field(default_factory=dict)
+    seed: int | None = None           # P0-3：run 级 seed，None 表示未设
 
     def generate(self, prompt: str, **overrides) -> str:
         params = {**self.params, **overrides}
         if self.provider == "mock":
-            return _mock_generate(prompt, params)
+            return _mock_generate(prompt, params, self.seed)
         if self.provider == "openai":
             return _openai_generate(self, prompt, params)[0]
         raise ValueError(f"unknown provider: {self.provider}")
@@ -34,7 +36,7 @@ class ModelClient:
     def generate_n(self, prompt: str, n: int, **overrides) -> list[str]:
         params = {**self.params, **overrides, "n": n}
         if self.provider == "mock":
-            return [_mock_generate(prompt, {k: v for k, v in params.items() if k != "n"}) for _ in range(n)]
+            return [_mock_generate(prompt, {k: v for k, v in params.items() if k != "n"}, self.seed) for _ in range(n)]
         if self.provider == "openai":
             return _openai_generate(self, prompt, params, return_all=True)
         raise ValueError(f"unknown provider: {self.provider}")
@@ -46,13 +48,22 @@ class ModelClient:
         """
         params = {**self.params, **overrides}
         if self.provider == "mock":
-            return _mock_tools(prompt, tools, params)
+            return _mock_tools(prompt, tools, params, self.seed)
         if self.provider == "openai":
             return _openai_tools(self, prompt, tools, params)
         raise ValueError(f"unknown provider: {self.provider}")
 
 
-def build_model_client(model_id: str, models_cfg: dict) -> ModelClient:
+def _mask_key(key: str | None) -> str:
+    """脱敏 api_key，只留尾 4 位。空或过短统一返回 '***'。"""
+    if not key:
+        return "***"
+    if len(key) <= 4:
+        return "***"
+    return "***" + key[-4:]
+
+
+def build_model_client(model_id: str, models_cfg: dict, seed: int | None = None) -> ModelClient:
     if model_id not in models_cfg:
         raise KeyError(f"model not in configs/models.yaml: {model_id}")
     spec = models_cfg[model_id]
@@ -73,11 +84,13 @@ def build_model_client(model_id: str, models_cfg: dict) -> ModelClient:
         base_url=base_url,
         api_key=api_key,
         params=dict(spec.get("default_params", {})),
+        seed=seed,
     )
 
 
-def _mock_generate(prompt: str, params: dict) -> str:
-    rng = random.Random(hash(prompt) & 0xFFFFFFFF)
+def _mock_generate(prompt: str, params: dict, seed: int | None = None) -> str:
+    base = (prompt, seed) if seed is not None else (prompt,)
+    rng = random.Random(hash(base) & 0xFFFFFFFF)
     lowered = prompt.lower()
     if any(k in lowered for k in ["answer:", "选", "a)", "b)", "choice"]):
         return rng.choice(["A", "B", "C", "D"])
@@ -99,6 +112,8 @@ def _openai_generate(client: ModelClient, prompt: str, params: dict, return_all:
         body["n"] = params["n"]
     if "stop" in params:
         body["stop"] = params["stop"]
+    if client.seed is not None:
+        body["seed"] = client.seed
     resp = _post(url, client.api_key, body)
     choices = resp.get("choices", [])
     if return_all:
@@ -116,6 +131,8 @@ def _openai_tools(client: ModelClient, prompt: str, tools: list[dict], params: d
         "temperature": params.get("temperature", 0),
         "max_tokens": params.get("max_tokens", 1024),
     }
+    if client.seed is not None:
+        body["seed"] = client.seed
     resp = _post(url, client.api_key, body)
     choices = resp.get("choices", [])
     if not choices:
@@ -139,16 +156,17 @@ def _openai_tools(client: ModelClient, prompt: str, tools: list[dict], params: d
     return {"content": content, "tool_calls": parsed, "raw": resp}
 
 
-def _mock_tools(prompt: str, tools: list[dict], params: dict) -> dict:
+def _mock_tools(prompt: str, tools: list[dict], params: dict, seed: int | None = None) -> dict:
     if not tools:
         return {"content": "mock", "tool_calls": [], "raw": {}}
     fn = tools[0]["function"]
+    rng = random.Random(hash(((prompt, seed) if seed is not None else (prompt,))) & 0xFFFFFFFF)
     return {
         "content": None,
         "tool_calls": [{
             "id": "call_mock",
             "name": fn["name"],
-            "arguments": {k: 0 for k in fn.get("parameters", {}).get("properties", {})},
+            "arguments": {k: rng.randint(0, 100) for k in fn.get("parameters", {}).get("properties", {})},
         }],
         "raw": {},
     }

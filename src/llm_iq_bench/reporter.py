@@ -42,12 +42,18 @@ def emit_run_report(summary: dict, run_dir: Path, tag: str | None = None) -> Pat
     return md_path
 
 
+def _scored_tasks(tasks: dict) -> list[dict]:
+    """挑出真正跑分（非 skipped / 非 errored / 有 score）的任务。"""
+    return [t for t in tasks.values()
+            if not t.get("skipped") and not t.get("errored") and isinstance(t.get("score"), (int, float))]
+
+
 def _render_run_md(summary: dict, tag: str | None, run_dir: Path) -> str:
     plan = summary.get("plan", "")
     model = summary.get("model", "")
     ts = summary.get("timestamp", "")
     tasks = summary.get("tasks", {})
-    scored = [r for r in tasks.values() if not r.get("skipped")]
+    scored = _scored_tasks(tasks)
     overall = (sum(r.get("score", 0.0) for r in scored) / len(scored)) if scored else 0.0
 
     lines = [
@@ -68,6 +74,8 @@ def _render_run_md(summary: dict, tag: str | None, run_dir: Path) -> str:
     for bid, r in tasks.items():
         if r.get("skipped"):
             lines.append(f"| {bid} | — | — | 0 | SKIPPED |")
+        elif r.get("errored"):
+            lines.append(f"| {bid} | — | — | 0 | ERRORED |")
         else:
             lines.append(f"| {bid} | {r.get('metric','—')} | {r.get('score',0.0):.3f} | {r.get('n',0)} | OK |")
     lines += ["", f"_自动生成于 {dt.datetime.now(dt.UTC).isoformat(timespec='seconds')}，由 reporter.emit_run_report 写入。_"]
@@ -102,7 +110,7 @@ def _render_comparison(runs: list[dict]) -> str:
     lines = [
         "# 跨 Run 对比",
         "",
-        f"共 {len(runs)} 次 run（来自 `reports/runs/*.json`，按模型→时间排序）。",
+        f"共 {len(runs)} 次 run（来自 `reports/runs/*.json`，按模型→时间排序）。综合得分剔除 SKIPPED/ERRORED。",
         "",
         "## 总览",
         "",
@@ -110,7 +118,7 @@ def _render_comparison(runs: list[dict]) -> str:
         "|---|---|---|---|---|---|",
     ]
     for r in sorted(runs, key=lambda x: (x.get("model",""), x.get("timestamp",""))):
-        scored = [t for t in r.get("tasks",{}).values() if not t.get("skipped")]
+        scored = _scored_tasks(r.get("tasks", {}))
         overall = (sum(t.get("score",0.0) for t in scored)/len(scored)) if scored else 0.0
         name = f"{r.get('plan','')}__{r.get('model','')}"
         if r.get("tag"): name += f"__{r['tag']}"
@@ -128,6 +136,8 @@ def _render_comparison(runs: list[dict]) -> str:
             t = r.get("tasks", {}).get(bid)
             if not t or t.get("skipped"):
                 cells.append("—")
+            elif t.get("errored"):
+                cells.append("ERR")
             else:
                 cells.append(f"{t.get('score',0.0):.3f}")
         lines.append(f"| {name} | {r.get('model','')} | " + " | ".join(cells) + " |")
@@ -139,7 +149,7 @@ def _render_comparison(runs: list[dict]) -> str:
         if m not in by_model or r.get("timestamp","") > by_model[m].get("timestamp",""):
             by_model[m] = r
     for m, r in sorted(by_model.items()):
-        scored = [t for t in r.get("tasks",{}).values() if not t.get("skipped")]
+        scored = _scored_tasks(r.get("tasks",{}))
         overall = (sum(t.get("score",0.0) for t in scored)/len(scored)) if scored else 0.0
         lines.append(f"| {m} | {overall:.3f} | {len(scored)} |")
 
