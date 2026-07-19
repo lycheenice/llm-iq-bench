@@ -2,6 +2,33 @@
 
 > 本文件用于记录仓库进展，方便后续接力。按时间倒序追加新条目。
 
+## 2026-07-19 — 完善规划与 P0 推进（设计→单测→实现→验证→提交）
+
+### 背景
+初版（编码/BFCL/needle 三维度 + 图文报告）已跑通 GLM-5.2 本机评测。作为评测专家梳理后定下四目标：简洁可复现、全面客观、测试分级、按时间灵活组合。完整诊断与路线图见 `docs/ROADMAP.md`，设计文档落 `docs/design/`。
+
+### 关键诊断（对照源码核实）
+- 6 指标仍是 `NotImplementedError`（`metrics.py:69-102`），跑了报"0 分"而非"未实现" → 计划 P0-2 改 errored 标记
+- AIME `n:4` 死代码：`_run_one` 调 `generate()` 取 `choices[0]`，烧 4× token 无 pass@k → P0-1
+- 数据集版本 21/24 `latest`、run 未冻结配置、无 seed → P0-3
+- 仅 quick/full 二元，无分级 → P0-4
+- IFEval/MT-Bench/TruthfulQA 不可跑 → P0-5 起步
+
+### 本次进展
+- 新增 `docs/ROADMAP.md`（P0-P2 路线图，含验收口径）
+- 新增 `tests/_runner.py`：无 pytest 也能跑全部 `test_*.py`，纯 python `python tests/_runner.py`
+- `test_smoke.py` 加 `__main__` 块，纯 python 可直接跑；15/15 PASS 基线建立
+
+### 待办（P0 五项，逐项 设计→单测→实现→验证→提交）
+- [P0-1] AIME 多采样 maj@1/pass@k
+- [P0-2/3] errored 标记 + run 配置冻结 + seed 贯通
+- [P0-4] L0–L3 分级 plan + methodology 矩阵
+- [P0-5] IFEval 执行器（含 builtin mini 样本）
+
+### 接力提示（新增）
+- 单测两栖：`python tests/_runner.py`（无 pytest）与 `pytest -q tests` 等效；新 test 文件加 `if __name__=="__main__"` 块
+- 设计文档统一放 `docs/design/`，命名与 P0 项对齐
+
 ## 2026-07-18 — 仓库骨架搭建完成
 
 ### 已完成

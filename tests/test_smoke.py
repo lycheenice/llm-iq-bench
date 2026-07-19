@@ -98,3 +98,24 @@ def test_extract_code_fence():
 def test_build_tools_converts_dict_type():
     tools = _build_tools([{"name": "f", "description": "d", "parameters": {"type": "dict", "properties": {}}}])
     assert tools[0]["function"]["parameters"]["type"] == "object"
+
+
+def _main():
+    import traceback
+    p = f = 0
+    for name, fn in sorted([(n, globals()[n]) for n in list(globals()) if n.startswith("test_") and callable(globals()[n])]):
+        try:
+            fn()
+            print(f"  PASS  test_smoke::{name}")
+            p += 1
+        except Exception:
+            print(f"  FAIL  test_smoke::{name}")
+            traceback.print_exc()
+            f += 1
+    print(f"=== {'OK' if f == 0 else 'FAIL'}: {p} passed, {f} failed ===")
+    return 0 if f == 0 else 1
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(_main())

@@ -11,7 +11,13 @@ list:
 	python scripts/run_benchmark.py list
 
 test:
-	python -m pytest tests -q
+	python3 -m pytest tests -q 2>/dev/null || python3 tests/_runner.py
+
+test-py:
+	python3 -m pytest tests -q
+
+test-py3:
+	python3 tests/_runner.py
 
 run:
 	python scripts/run_benchmark.py run --plan $(PLAN) --model $(MODEL)
