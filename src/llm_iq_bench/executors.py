@@ -78,9 +78,59 @@ def run_code_exec(runner, bench: dict, spec: dict, n, samples_file) -> dict:
     template = bench.get("prompt_template", "code_complete")
     params = {k: v for k, v in bench.get("params", {}).items() if k != "concurrency"}
     concurrency = _concurrency(bench)
+    # A3: n>1 走多采样 pass@k 无偏估计路径；n 缺省/=1 走原 pass_at_1 单采样路径
+    n_samples = params.pop("n", None)
+    multisample = bool(n_samples and n_samples > 1)
 
     def work(sample):
         prompt = _render_code_prompt(template, sample, fields)
+        ep = sample.get(fields.get("entry_point", "entry_point"))
+        if multisample:
+            preds = runner.client.generate_n(prompt, int(n_samples), **params)
+            ep_list = []
+            verdicts = []
+            errs = []
+            for pred in preds:
+                err = None
+                try:
+                    code = _extract_code(pred)
+                except Exception as e:
+                    code = ""
+                    err = f"{type(e).__name__}: {e}"
+                if not ep:
+                    ep_l = _guess_entry_point(code, sample, fields)
+                else:
+                    ep_l = ep
+                ep_list.append(ep_l)
+                try:
+                    ok = _run_code_sandbox(code, sample, fields, ep_l)
+                except Exception as e:
+                    ok = False
+                    err = f"{type(e).__name__}: {e}"
+                verdicts.append(bool(ok))
+                errs.append(err)
+            c = sum(verdicts)
+            from .metrics import pass_at_k_unbiased
+            unbiased = pass_at_k_unbiased(int(n_samples), c, int(n_samples)) if c < int(n_samples) else 1.0
+            # pass@1 empirical = c/n; pass@k unbiased = unbiased
+            rec = {
+                "benchmark": bench.get("dataset", "code_exec"),
+                "dataset": dataset_id,
+                "prompt": prompt,
+                "n_predictions": preds,
+                "verdicts": verdicts,
+                "gold": sample.get(fields.get("gold", "gold")),
+                "entry_point": ep_list[0] if ep_list else ep,
+                "c": c,
+                "n_samples": int(n_samples),
+                "pass_at_1_local": round(c / int(n_samples), 4),
+                "pass_at_k_unbiased": round(unbiased, 4),
+                "verdict": c > 0,  # 向后兼容：任一对
+            }
+            errs_filt = [e for e in errs if e]
+            if errs_filt:
+                rec["errors"] = errs_filt
+            return rec
         err = None
         try:
             pred = runner.client.generate(prompt, **params)
@@ -88,15 +138,15 @@ def run_code_exec(runner, bench: dict, spec: dict, n, samples_file) -> dict:
             pred = ""
             err = f"{type(e).__name__}: {e}"
         code = _extract_code(pred)
-        ep = sample.get(fields.get("entry_point", "entry_point")) or _guess_entry_point(code, sample, fields)
-        ok = _run_code_sandbox(code, sample, fields, ep)
+        ep_l = ep or _guess_entry_point(code, sample, fields)
+        ok = _run_code_sandbox(code, sample, fields, ep_l)
         rec = {
             "benchmark": bench.get("dataset", "code_exec"),
             "dataset": dataset_id,
             "prompt": prompt,
             "prediction": pred,
             "gold": sample.get(fields.get("gold", "gold")),
-            "entry_point": ep,
+            "entry_point": ep_l,
             "verdict": ok,
         }
         if err:
@@ -104,10 +154,25 @@ def run_code_exec(runner, bench: dict, spec: dict, n, samples_file) -> dict:
         return rec
 
     records = _run_pool(work, samples, concurrency, desc=bench.get("dataset", "code_exec"))
-    correct = sum(1 for r in records if r["verdict"])
     for r in records:
         samples_file.write(json.dumps(r, ensure_ascii=False) + "\n")
     samples_file.flush()
+    if multisample:
+        n_total = len(records)
+        pass1 = sum(r["pass_at_1_local"] for r in records) / n_total if n_total else 0.0
+        passk = sum(r["pass_at_k_unbiased"] for r in records) / n_total if n_total else 0.0
+        any_ok = sum(1 for r in records if r["c"] > 0) / n_total if n_total else 0.0
+        return {
+            "metric": "pass_at_k",
+            "score": round(passk, 4),  # primary = pass@k unbiased（业界标准）
+            "pass_at_1": round(pass1, 4),
+            "pass_at_k": round(passk, 4),
+            "any_correct_rate": round(any_ok, 4),
+            "n_samples": int(n_samples),
+            "n": n_total,
+            "total": len(samples),
+        }
+    correct = sum(1 for r in records if r["verdict"])
     return {
         "metric": "pass_at_1",
         "score": round(correct / len(records), 4) if records else 0.0,

@@ -1,0 +1,9 @@
+name: coding_pass5
+tier: L1
+time_budget_min: 30
+seed: 1234
+description: A3 验证 plan — 真实 GLM-5.2 跑 HumanEval/MBPP 各 10 题 n=5，验证 pass@k 无偏估计双报路径。
+model: glm-local
+tasks:
+  - {benchmark: coding_humaneval_pass5, n: 10}
+  - {benchmark: coding_mbpp_pass5, n: 10}

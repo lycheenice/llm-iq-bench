@@ -203,6 +203,29 @@ def pass_at_k(predictions: list[str], gold, extractor: str | None = None,
     return any(_norm_text(_extract_answer(p, extractor)) == _norm_text(gold) for p in predictions)
 
 
+def pass_at_k_unbiased(n: int, c: int, k: int) -> float:
+    """HumanEval/MBPP 业界标准的 pass@k 无偏估计 (Codex 论文公式)。
+
+    1 - C(n-c, k) / C(n, k)，n=总采样数，c=通过数，k=考察的 k。
+    - k=n 时退化为"任一对"上限
+    - c < n-k 时返回 1.0（C(n-c,k)=0，不可能全错）
+    - 数值稳定：用对数/乘积展开避免大数溢出（n≤1000 安全）
+    """
+    if n <= 0 or k <= 0 or k > n:
+        raise ValueError(f"invalid n={n} k={k}")
+    if c >= n - k + 1:
+        # 全错都不可能取到 k 个错的，必然 pass@k = 1
+        return 1.0
+    # 1 - prod_{i=n-c+1..n} (i - k) / prod_{i=n-c+1..n} i
+    # 等价 1 - C(n-c, k)/C(n, k)，用乘积展开避免阶乘大数
+    num = 1.0
+    den = 1.0
+    for i in range(n - c + 1, n + 1):
+        num *= (i - k)
+        den *= i
+    return 1.0 - num / den
+
+
 def aggregate_multisample(agg: str, predictions: list[str], gold,
                           extractor: str | None = None, metric: str | None = None,
                           **ctx) -> bool:

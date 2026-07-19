@@ -142,6 +142,90 @@ def test_single_sample_path_no_n_predictions():
     assert "n_predictions" not in rows[0], "单采样不应写 n_predictions"
 
 
+# ---------- 纯函数: pass_at_k_unbiased (A3) ----------
+
+def test_pass_at_k_unbiased_known_values():
+    from llm_iq_bench.metrics import pass_at_k_unbiased
+    assert pass_at_k_unbiased(5, 0, 1) == 0.0
+    assert abs(pass_at_k_unbiased(5, 1, 1) - 0.2) < 1e-9
+    assert pass_at_k_unbiased(5, 5, 1) == 1.0
+    assert pass_at_k_unbiased(5, 1, 5) == 1.0  # k=n, 任一对, 退化
+    # 1 - C(8,2)/C(10,2) = 1 - 28/45 = 0.3778
+    assert abs(pass_at_k_unbiased(10, 2, 2) - (1 - 28/45)) < 1e-9
+
+
+def test_pass_at_k_unbiased_invalid_raises():
+    from llm_iq_bench.metrics import pass_at_k_unbiased
+    for bad in [(0, 0, 1), (5, 0, 0), (5, 0, 6)]:
+        try:
+            pass_at_k_unbiased(*bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"expected ValueError for {bad}")
+
+
+def test_pass_at_k_unbiased_monotonic_in_c():
+    """c 越大 pass@k 越大（同 n,k）"""
+    from llm_iq_bench.metrics import pass_at_k_unbiased
+    vals = [pass_at_k_unbiased(10, c, 3) for c in range(0, 9)]
+    assert vals == sorted(vals), f"should be monotonic: {vals}"
+
+
+# ---------- A3: code_exec multisample 双报路径 ----------
+
+def _run_code_exec_mock(tmpdir: Path, n_samples=None, n_problems=2):
+    """构造 mock 跑 coding_humaneval（demo_qa 冒充），返回 outcome + rows。"""
+    from llm_iq_bench.runner import Runner
+    bench_cfg = load_benchmarks()
+    params = {"temperature": 0.7, "max_tokens": 256, "concurrency": 2}
+    if n_samples:
+        params["n"] = n_samples
+    bench_cfg["coding_humaneval"] = {
+        "dataset": "demo_qa",  # 6 题，不真跑 sandbox（mock 输出文本，extract_code 可能失败但路径走通）
+        "metric": "pass_at_1",
+        "runner": "code_exec",
+        "prompt_template": "code_complete",
+        "params": params,
+    }
+    r = Runner(model_id="mock", benchmarks_cfg=bench_cfg)
+    sp = tmpdir / "s.jsonl"
+    with open(sp, "w", encoding="utf-8") as f:
+        outcome = r._run_one("coding_humaneval", n_problems, f)
+    rows = [json.loads(l) for l in sp.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return outcome, rows
+
+
+def test_code_exec_multisample_writes_n_predictions_and_unbiased():
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        outcome, rows = _run_code_exec_mock(Path(d), n_samples=5, n_problems=2)
+    assert len(rows) == 2
+    for r in rows:
+        assert "n_predictions" in r and len(r["n_predictions"]) == 5
+        assert "verdicts" in r and len(r["verdicts"]) == 5
+        assert "c" in r and "n_samples" in r and r["n_samples"] == 5
+        assert "pass_at_1_local" in r and "pass_at_k_unbiased" in r
+        # c=0 时 unbiased=0；c>=1 时 unbiased>=0
+        if r["c"] == 0:
+            assert r["pass_at_k_unbiased"] == 0.0
+    # outcome 双报
+    assert outcome["metric"] == "pass_at_k"
+    assert "pass_at_1" in outcome and "pass_at_k" in outcome
+    assert outcome["n_samples"] == 5
+
+
+def test_code_exec_single_sample_backward_compatible():
+    """n 缺省时走原 pass_at_1 路径，samples 无 n_predictions。"""
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        outcome, rows = _run_code_exec_mock(Path(d), n_samples=None, n_problems=2)
+    assert outcome["metric"] == "pass_at_1"
+    assert "pass_at_1" not in outcome and "pass_at_k" not in outcome  # 双报字段不出现
+    for r in rows:
+        assert "n_predictions" not in r and "prediction" in r
+        assert "c" not in r
+
+
 # ---------- A2: list aggregator 双报路径 ----------
 
 def _run_aime_mini_mock(tmpdir: Path, n: int = 3):

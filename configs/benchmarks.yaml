@@ -81,12 +81,28 @@ benchmarks:
     prompt_template: code_complete
     params: {temperature: 0, max_tokens: 4096, concurrency: 8}
 
+  # A3: HumanEval n=5 pass@k 无偏估计双报
+  coding_humaneval_pass5:
+    dataset: humaneval
+    metric: pass_at_k
+    runner: code_exec
+    prompt_template: code_complete
+    params: {temperature: 0.7, max_tokens: 4096, concurrency: 8, n: 5}
+
   coding_mbpp:
     dataset: mbpp
     metric: pass_at_1
     runner: code_exec
     prompt_template: mbpp_task
     params: {temperature: 0, max_tokens: 4096, concurrency: 8}
+
+  # A3: MBPP n=5 pass@k 无偏估计双报
+  coding_mbpp_pass5:
+    dataset: mbpp
+    metric: pass_at_k
+    runner: code_exec
+    prompt_template: mbpp_task
+    params: {temperature: 0.7, max_tokens: 4096, concurrency: 8, n: 5}
 
   coding_humaneval_t02:
     dataset: humaneval
