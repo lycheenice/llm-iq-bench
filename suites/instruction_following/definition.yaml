@@ -2,6 +2,7 @@ title: 指令遵循与对话质量
 dim: instruction_following
 description: 可验证格式约束的指令遵循、多轮连贯、对齐偏好。
 datasets: [ifeval, mt_bench]
+benchmarks: [ifeval_strict, ifeval_mini_strict, mt_bench]
 metrics: [ifeval_strict, llm_judge]
 default_params: {temperature: 0, max_tokens: 1024}
 prompt_templates: [raw]

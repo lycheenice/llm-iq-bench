@@ -2,6 +2,7 @@ title: 多语言
 dim: multilingual
 description: 非英文场景下的推理与理解能力。
 datasets: [mgsm]
+benchmarks: [multilingual_mgsm]
 metrics: [exact_match_numeric]
 default_params: {temperature: 0, max_tokens: 512}
 prompt_templates: [reasoning_qa]

@@ -2,6 +2,7 @@ title: 长上下文召回与理解
 dim: long_context
 description: 长文档内信息检索与综合。
 datasets: [longbench, needle]
+benchmarks: [long_longbench, long_needle, long_needle_stress]
 metrics: [f1, exact_match_text]
 runners: [needle_gen]
 default_params: {temperature: 0, max_tokens: 256}

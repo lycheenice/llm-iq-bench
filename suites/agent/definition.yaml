@@ -2,6 +2,7 @@ title: Agent / 工具调用 / 多步任务
 dim: agent
 description: 函数调用正确性、多步任务规划与端到端执行。
 datasets: [bfcl, gaia]
+benchmarks: [agent_bfcl, agent_gaia]
 metrics: [function_call_accuracy, exact_match_text]
 runners: [function_exec, agent_loop]
 default_params: {temperature: 0, max_tokens: 2048}

@@ -8,16 +8,6 @@ from .runner import Runner
 
 DIMENSIONS = ["knowledge", "reasoning", "coding", "instruction_following",
               "safety", "agent", "multilingual", "long_context"]
-SUITE_TASK_DIR = {
-    "knowledge": ["knowledge_mmlu", "knowledge_mmlu_pro", "knowledge_c_eval", "knowledge_gpqa"],
-    "reasoning": ["reasoning_gsm8k", "reasoning_math", "reasoning_aime", "reasoning_bbh", "reasoning_arc"],
-    "coding": ["coding_humaneval", "coding_mbpp", "coding_livecodebench", "coding_swe_bench"],
-    "instruction_following": ["ifeval_strict", "mt_bench"],
-    "safety": ["safety_truthfulqa", "safety_advbench", "safety_xstest", "safety_bbq"],
-    "agent": ["agent_bfcl", "agent_gaia"],
-    "multilingual": ["multilingual_mgsm"],
-    "long_context": ["long_longbench", "long_needle"],
-}
 
 
 def cmd_list(args):
@@ -33,13 +23,14 @@ def cmd_list(args):
     print(f"\n== 评测任务 ({len(benchmarks)}) ==")
     for b, s in benchmarks.items():
         print(f"  {b:24s} metric={s.get('metric'):22s} on {s.get('dataset')}")
-    print("\n== 维度 suite ==")
+    print("\n== 维度 suite (benchmarks 从 definition.yaml 动态读) ==")
     for dim in DIMENSIONS:
         try:
             suite = load_suite(dim)
         except FileNotFoundError:
             continue
-        print(f"  {dim}: {suite.get('title', '')}")
+        bids = suite.get("benchmarks", [])
+        print(f"  {dim}: {suite.get('title', '')}  [{len(bids)} tasks: {', '.join(bids)}]")
 
 
 def cmd_run(args):

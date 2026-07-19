@@ -2,6 +2,7 @@ title: 数学与推理
 dim: reasoning
 description: 多步算术、符号推理、竞赛数学能力。
 datasets: [gsm8k, math, aime, bbh, arc_challenge]
+benchmarks: [reasoning_gsm8k, reasoning_math, reasoning_aime, reasoning_aime_mini, reasoning_bbh, reasoning_bbh_navigate, reasoning_arc, demo_qa]
 metrics: [exact_match_numeric, exact_match_boxed, exact_match_text]
 answer_extractors: [last_number, boxed]
 default_params: {temperature: 0, max_tokens: 1024}

@@ -2,6 +2,7 @@ title: 安全 / 防幻觉 / 偏见
 dim: safety
 description: 拒绝有害请求、避免常见误区、减少偏见、不过度拒绝。
 datasets: [truthfulqa, advbench, xstest, bbq]
+benchmarks: [safety_truthfulqa, safety_advbench, safety_xstest, safety_bbq]
 metrics: [truthfulqa_mc1, refusal_rate, over_refusal_rate, accuracy_mc]
 default_params: {temperature: 0, max_tokens: 256}
 prompt_templates: [raw, knowledge_mc]

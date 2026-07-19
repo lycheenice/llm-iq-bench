@@ -2,6 +2,7 @@ title: 代码能力
 dim: coding
 description: 函数级代码生成、多语言、真实软件工程。
 datasets: [humaneval, mbpp, livecodebench, swe_bench_verified]
+benchmarks: [coding_humaneval, coding_humaneval_pass5, coding_humaneval_t02, coding_mbpp, coding_mbpp_pass5, coding_mbpp_t02, coding_livecodebench, coding_swe_bench]
 metrics: [pass_at_1, swe_resolved]
 runners: [code_exec, swe_docker]
 default_params: {temperature: 0, max_tokens: 1024}
