@@ -1,0 +1,32 @@
+{
+  "plan": "coding_pass5",
+  "model": "glm-local",
+  "timestamp": "20260719T165132Z",
+  "seed": 1234,
+  "tasks": {
+    "coding_humaneval_pass5": {
+      "metric": "pass_at_k",
+      "score": 0.9,
+      "pass_at_1": 0.72,
+      "pass_at_k": 0.9,
+      "any_correct_rate": 0.9,
+      "n_samples": 5,
+      "n": 10,
+      "total": 10,
+      "benchmark": "coding_humaneval_pass5"
+    },
+    "coding_mbpp_pass5": {
+      "metric": "pass_at_k",
+      "score": 0.5,
+      "pass_at_1": 0.5,
+      "pass_at_k": 0.5,
+      "any_correct_rate": 0.5,
+      "n_samples": 5,
+      "n": 10,
+      "total": 10,
+      "benchmark": "coding_mbpp_pass5"
+    }
+  },
+  "tag": null,
+  "run_dir": "/home/lychee/mycode/llm-iq-bench/results/coding_pass5_glm-local_20260719T165132Z"
+}

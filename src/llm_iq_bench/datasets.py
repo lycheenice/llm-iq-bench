@@ -38,7 +38,8 @@ def load_dataset_samples(dataset_id: str, datasets_cfg: dict, n: int | None = No
 
 # 标准键名（prompts.render 与 runner 期望的键）
 _CANONICAL_KEYS = ("question", "choices", "gold", "context", "prompt",
-                   "answer", "entry_point", "test", "instructions", "type")
+                   "answer", "entry_point", "test", "instructions", "type",
+                   "setup_code", "signature", "canonical_code")
 
 
 def _normalize_sample(sample: dict, fields: dict) -> dict:

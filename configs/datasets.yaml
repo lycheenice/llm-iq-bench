@@ -119,7 +119,7 @@ datasets:
     split: test
     version: 2021-google
     license: CC-BY
-    fields: {prompt: text, gold: test_list}
+    fields: {prompt: text, gold: test_list, setup_code: test_setup_code, canonical_code: code}
     n_default: 500
 
   livecodebench:

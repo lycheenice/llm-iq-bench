@@ -185,15 +185,17 @@ def _render_code_prompt(template: str, sample: dict, fields: dict) -> str:
     if template == "mbpp_task":
         task = sample[fields.get("prompt", "text")]
         ep = _mbpp_expected_fn(sample, fields)
-        hint = f"\n\nThe function must be named `{ep}`." if ep else ""
-        return f"Write a Python function to solve the following task. Only output code, no explanation.{hint}\n\n{task}"
+        sig = _mbpp_signature(sample, fields)
+        hint_fn = f"\n\nThe function must be named `{ep}`." if ep else ""
+        hint_sig = f"\n\nUse this exact function signature: `{sig}`" if sig else ""
+        return f"Write a Python function to solve the following task. Only output code, no explanation.{hint_fn}{hint_sig}\n\n{task}"
     prompt_text = sample.get(fields.get("prompt", "prompt"), "")
     return f"Complete the following Python function. Only output code, no explanation.\n\n{prompt_text}"
 
 
 def _mbpp_expected_fn(sample: dict, fields: dict) -> str:
     """从 MBPP 的 canonical code / test_list 推断期望的函数名。"""
-    code = sample.get("code") or ""
+    code = sample.get("canonical_code") or sample.get(fields.get("canonical_code", "code")) or ""
     m = re.search(r"def\s+(\w+)\s*\(", code)
     if m:
         return m.group(1)
@@ -202,6 +204,20 @@ def _mbpp_expected_fn(sample: dict, fields: dict) -> str:
         if m:
             return m.group(1)
     return ""
+
+
+def _mbpp_signature(sample: dict, fields: dict) -> str:
+    """从 MBPP canonical code 提取完整函数签名 `def name(args):`。
+
+    让模型按 gold 期望的参数数（含 n 数组长度等老式约定）实现，
+    避免 prompt 给单参、gold 用双参的签名不匹配失败。
+    无 canonical code 时返回空字符串。
+    """
+    code = sample.get("canonical_code") or sample.get(fields.get("canonical_code", "code")) or ""
+    if not code:
+        return ""
+    m = re.search(r"def\s+\w+\s*\([^)]*\)\s*:", code)
+    return m.group(0).strip() if m else ""
 
 
 def _extract_code(pred: str) -> str:
@@ -220,7 +236,11 @@ def _guess_entry_point(code: str, sample: dict, fields: dict) -> str:
 
 def _run_code_sandbox(code: str, sample: dict, fields: dict, entry_point: str) -> bool:
     gold = sample.get(fields.get("gold", "gold"))
+    setup = sample.get(fields.get("setup_code", "setup_code")) or ""
     full = code + "\n\n"
+    # MBPP 等数据集 test_setup_code 在 asserts 前执行（构造 Node 等测试 fixture）
+    if isinstance(setup, str) and setup.strip():
+        full += setup.rstrip() + "\n\n"
     if isinstance(gold, str) and "def check" in gold:
         full += gold + f"\ncheck({entry_point})\n"
     elif isinstance(gold, list):

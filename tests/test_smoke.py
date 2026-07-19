@@ -98,6 +98,54 @@ def test_code_sandbox():
     assert _exec_python("def square(n):\n    return n\n\nassert square(3) == 9\n") is False
 
 
+def test_code_sandbox_runs_setup_code():
+    """MBPP 等数据集 test_setup_code 应在 asserts 前执行（构造 Node 等测试 fixture）。"""
+    from llm_iq_bench.executors import _run_code_sandbox
+    # 模拟 is_tree_balanced 类型：setup_code 建 Node 树，gold 用 root 变量
+    fields = {"gold": "gold", "setup_code": "setup_code"}
+    sample = {
+        "gold": ["assert is_balanced(root) == True"],
+        "setup_code": "class Node:\n    def __init__(self,v):\n        self.v=v;self.l=self.r=None\nroot = Node(1)",
+    }
+    # 正确实现：is_balanced 调用 root（来自 setup）应 pass
+    code_ok = "def is_balanced(root):\n    return True"
+    assert _run_code_sandbox(code_ok, sample, fields, "is_balanced") is True
+    # 错实现：返回 False 应 fail
+    code_bad = "def is_balanced(root):\n    return False"
+    assert _run_code_sandbox(code_bad, sample, fields, "is_balanced") is False
+    # 没 setup_code 时向后兼容
+    sample_no = {"gold": ["assert f(2) == 4"]}
+    assert _run_code_sandbox("def f(x):\n    return x*x", sample_no, {}, "f") is True
+
+
+def test_mbpp_signature_extraction():
+    """从 canonical code 提取完整签名，含双参数情形。"""
+    from llm_iq_bench.executors import _mbpp_signature, _mbpp_expected_fn, _render_code_prompt
+    fields = {"prompt": "text", "gold": "test_list", "canonical_code": "canonical_code"}
+    sample = {
+        "text": "Find frequency of largest value.",
+        "canonical_code": "def frequency_Of_Largest(n, arr):\r\n    return arr.count(max(arr))",
+        "test_list": ["assert frequency_Of_Largest(5,[1,2,3,4,4]) == 2"],
+    }
+    assert _mbpp_expected_fn(sample, fields) == "frequency_Of_Largest"
+    sig = _mbpp_signature(sample, fields)
+    assert sig == "def frequency_Of_Largest(n, arr):", f"got: {sig}"
+    # prompt 应含 signature 提示
+    p = _render_code_prompt("mbpp_task", sample, fields)
+    assert "frequency_Of_Largest(n, arr)" in p, f"signature 未注入 prompt: {p}"
+    assert "The function must be named `frequency_Of_Largest`" in p
+
+
+def test_mbpp_signature_empty_when_no_code():
+    """无 canonical code 时签名提示为空，prompt 退化为原行为。"""
+    from llm_iq_bench.executors import _mbpp_signature, _render_code_prompt
+    fields = {"prompt": "text", "gold": "test_list", "canonical_code": "canonical_code"}
+    sample = {"text": "task text", "test_list": ["assert fn() == 1"]}
+    assert _mbpp_signature(sample, fields) == ""
+    p = _render_code_prompt("mbpp_task", sample, fields)
+    assert "Use this exact function signature" not in p
+
+
 def test_extract_code_fence():
     out = _extract_code("Here:\n```python\ndef f():\n    return 1\n```\ndone")
     assert "def f():" in out
