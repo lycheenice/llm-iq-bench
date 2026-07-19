@@ -7,9 +7,12 @@ datasets:
     split: test
     version: latest
     license: MIT
-    fields: {question: question, choices: choices, gold: answer}
+    fields:
+      question: question
+      choices: choices
+      gold: answer
     n_default: 500
-
+    cost_per_sample_sec: 2
   mmlu_pro:
     dim: knowledge
     source: huggingface
@@ -17,9 +20,12 @@ datasets:
     split: validation
     version: latest
     license: MIT
-    fields: {question: question, choices: options, gold: answer_index}
+    fields:
+      question: question
+      choices: options
+      gold: answer_index
     n_default: 500
-
+    cost_per_sample_sec: 4
   c_eval:
     dim: knowledge
     source: huggingface
@@ -27,9 +33,12 @@ datasets:
     split: val
     version: latest
     license: CC-BY-NC-SA
-    fields: {question: question, choices: choices, gold: answer}
+    fields:
+      question: question
+      choices: choices
+      gold: answer
     n_default: 500
-
+    cost_per_sample_sec: 3
   gpqa:
     dim: knowledge
     source: huggingface
@@ -38,9 +47,12 @@ datasets:
     split: train
     version: latest
     license: CC-BY-NC
-    fields: {question: question, choices: choices, gold: answer}
+    fields:
+      question: question
+      choices: choices
+      gold: answer
     n_default: 200
-
+    cost_per_sample_sec: 10
   gsm8k:
     dim: reasoning
     source: web
@@ -48,9 +60,11 @@ datasets:
     format: jsonl
     version: 2023-openai-github
     license: MIT
-    fields: {question: question, gold: answer}
+    fields:
+      question: question
+      gold: answer
     n_default: 500
-
+    cost_per_sample_sec: 8
   math:
     dim: reasoning
     source: huggingface
@@ -58,9 +72,11 @@ datasets:
     split: test
     version: latest
     license: MIT
-    fields: {question: problem, gold: solution}
+    fields:
+      question: problem
+      gold: solution
     n_default: 500
-
+    cost_per_sample_sec: 20
   aime:
     dim: reasoning
     source: huggingface
@@ -68,9 +84,11 @@ datasets:
     split: train
     version: latest
     license: CC-BY-NC
-    fields: {question: Problem, gold: Answer}
+    fields:
+      question: Problem
+      gold: Answer
     n_default: 30
-
+    cost_per_sample_sec: 30
   aime_2024:
     dim: reasoning
     source: builtin
@@ -78,9 +96,11 @@ datasets:
     split: train
     version: builtin-2026-07-19
     license: public-domain-synthetic
-    fields: {question: question, gold: gold}
+    fields:
+      question: question
+      gold: gold
     n_default: 3
-
+    cost_per_sample_sec: 30
   bbh:
     dim: reasoning
     source: huggingface
@@ -88,9 +108,11 @@ datasets:
     split: test
     version: latest
     license: MIT
-    fields: {question: input, gold: target}
+    fields:
+      question: input
+      gold: target
     n_default: 300
-
+    cost_per_sample_sec: 12
   arc_challenge:
     dim: reasoning
     source: huggingface
@@ -99,9 +121,12 @@ datasets:
     split: test
     version: latest
     license: CC-BY
-    fields: {question: question, choices: choices, gold: answerKey}
+    fields:
+      question: question
+      choices: choices
+      gold: answerKey
     n_default: 500
-
+    cost_per_sample_sec: 2
   humaneval:
     dim: coding
     source: local
@@ -109,9 +134,12 @@ datasets:
     split: test
     version: 2023-openai
     license: MIT
-    fields: {prompt: prompt, gold: test, entry_point: entry_point}
+    fields:
+      prompt: prompt
+      gold: test
+      entry_point: entry_point
     n_default: 164
-
+    cost_per_sample_sec: 6
   mbpp:
     dim: coding
     source: local
@@ -119,9 +147,13 @@ datasets:
     split: test
     version: 2021-google
     license: CC-BY
-    fields: {prompt: text, gold: test_list, setup_code: test_setup_code, canonical_code: code}
+    fields:
+      prompt: text
+      gold: test_list
+      setup_code: test_setup_code
+      canonical_code: code
     n_default: 500
-
+    cost_per_sample_sec: 8
   livecodebench:
     dim: coding
     source: huggingface
@@ -129,9 +161,11 @@ datasets:
     split: test
     version: latest
     license: MIT
-    fields: {prompt: question_content, gold: evaluation}
+    fields:
+      prompt: question_content
+      gold: evaluation
     n_default: 200
-
+    cost_per_sample_sec: 15
   swe_bench_verified:
     dim: coding
     source: huggingface
@@ -139,9 +173,12 @@ datasets:
     split: test
     version: latest
     license: MIT
-    fields: {repo: repo, instance_id: instance_id, gold: FAIL_TO_PASS}
+    fields:
+      repo: repo
+      instance_id: instance_id
+      gold: FAIL_TO_PASS
     n_default: 100
-
+    cost_per_sample_sec: 120
   ifeval:
     dim: instruction_following
     source: huggingface
@@ -149,9 +186,11 @@ datasets:
     split: train
     version: latest
     license: CC-BY
-    fields: {prompt: prompt, gold: instruction_id_list}
+    fields:
+      prompt: prompt
+      gold: instruction_id_list
     n_default: 500
-
+    cost_per_sample_sec: 8
   ifeval_mini:
     dim: instruction_following
     source: builtin
@@ -159,9 +198,10 @@ datasets:
     split: demo
     version: 1.0
     license: MIT
-    fields: {prompt: prompt, instructions: instructions}
+    fields:
+      prompt: prompt
+      instructions: instructions
     n_default: 8
-
   mt_bench:
     dim: instruction_following
     source: local
@@ -169,9 +209,10 @@ datasets:
     split: test
     version: 1.0
     license: CC-BY
-    fields: {prompt: prompt, gold: null}
+    fields:
+      prompt: prompt
+      gold: null
     n_default: 80
-
   truthfulqa:
     dim: safety
     source: huggingface
@@ -180,9 +221,12 @@ datasets:
     split: validation
     version: latest
     license: CC-BY-NC
-    fields: {question: question, choices: mc1_targets, gold: null}
+    fields:
+      question: question
+      choices: mc1_targets
+      gold: null
     n_default: 500
-
+    cost_per_sample_sec: 4
   advbench:
     dim: safety
     source: huggingface
@@ -190,9 +234,11 @@ datasets:
     split: train
     version: latest
     license: MIT
-    fields: {question: prompt, gold: null}
+    fields:
+      question: prompt
+      gold: null
     n_default: 500
-
+    cost_per_sample_sec: 4
   xstest:
     dim: safety
     source: huggingface
@@ -200,9 +246,11 @@ datasets:
     split: train
     version: latest
     license: CC-BY
-    fields: {question: prompt, gold: type}
+    fields:
+      question: prompt
+      gold: type
     n_default: 250
-
+    cost_per_sample_sec: 4
   bbq:
     dim: safety
     source: huggingface
@@ -210,9 +258,12 @@ datasets:
     split: test
     version: latest
     license: CC-BY
-    fields: {question: question, choices: choices, gold: answer}
+    fields:
+      question: question
+      choices: choices
+      gold: answer
     n_default: 500
-
+    cost_per_sample_sec: 2
   bfcl:
     dim: agent
     source: local
@@ -220,10 +271,16 @@ datasets:
     split: test
     version: v3
     license: CC-BY
-    fields: {prompt: question, gold: id}
-    categories: [simple, multiple, parallel, irrelevance]
+    fields:
+      prompt: question
+      gold: id
+    categories:
+    - simple
+    - multiple
+    - parallel
+    - irrelevance
     n_default: 200
-
+    cost_per_sample_sec: 3
   gaia:
     dim: agent
     source: huggingface
@@ -231,9 +288,11 @@ datasets:
     split: test
     version: latest
     license: CC-BY-NC
-    fields: {question: Question, gold: Final answer}
+    fields:
+      question: Question
+      gold: Final answer
     n_default: 100
-
+    cost_per_sample_sec: 60
   mgsm:
     dim: multilingual
     source: web
@@ -241,9 +300,11 @@ datasets:
     format: tsv
     version: 2022-google-research-github
     license: Apache-2.0
-    fields: {question: 0, gold: 1}
+    fields:
+      question: 0
+      gold: 1
     n_default: 250
-
+    cost_per_sample_sec: 12
   bbh_navigate:
     dim: reasoning
     source: web
@@ -251,9 +312,11 @@ datasets:
     format: json
     version: 2022-suzgunmirac-github
     license: MIT
-    fields: {question: input, gold: target}
+    fields:
+      question: input
+      gold: target
     n_default: 250
-
+    cost_per_sample_sec: 10
   longbench:
     dim: long_context
     source: huggingface
@@ -261,9 +324,12 @@ datasets:
     split: test
     version: latest
     license: MIT
-    fields: {context: context, question: input, gold: answers}
+    fields:
+      context: context
+      question: input
+      gold: answers
     n_default: 200
-
+    cost_per_sample_sec: 20
   needle:
     dim: long_context
     source: local
@@ -271,9 +337,12 @@ datasets:
     split: generated
     version: 1.0
     license: MIT
-    fields: {context: context, question: question, gold: needle}
+    fields:
+      context: context
+      question: question
+      gold: needle
     n_default: 9
-
+    cost_per_sample_sec: 12
   demo_mc:
     dim: knowledge
     source: builtin
@@ -281,9 +350,12 @@ datasets:
     split: demo
     version: 1.0
     license: MIT
-    fields: {question: question, choices: choices, gold: answer}
+    fields:
+      question: question
+      choices: choices
+      gold: answer
     n_default: 6
-
+    cost_per_sample_sec: 0.05
   demo_qa:
     dim: reasoning
     source: builtin
@@ -291,5 +363,8 @@ datasets:
     split: demo
     version: 1.0
     license: MIT
-    fields: {question: question, gold: answer}
+    fields:
+      question: question
+      gold: answer
     n_default: 6
+    cost_per_sample_sec: 0.05

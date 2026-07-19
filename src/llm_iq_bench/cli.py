@@ -38,6 +38,29 @@ def cmd_run(args):
     runner.run_plan(args.plan, max_per_task=args.n)
 
 
+def cmd_compose(args):
+    from .composer import compose_plan, write_plan
+    plan = compose_plan(
+        dimensions=args.dimensions.split(",") if args.dimensions else [],
+        time_budget_min=args.time_budget,
+        model=args.model,
+        seed=args.seed,
+        tier=args.tier,
+        max_n=args.max_n,
+        include_hf=args.include_hf,
+        name=args.name,
+    )
+    path = write_plan(plan, out_dir=args.out)
+    print(f"composed plan: {path}")
+    print(f"  tier={plan['tier']} budget={plan['time_budget_min']}min model={plan['model']}")
+    print(f"  tasks ({len(plan['tasks'])}):")
+    for t in plan["tasks"]:
+        print(f"    {t['benchmark']:30s} n={t['n']}")
+    if args.run:
+        runner = Runner(model_id=args.model)
+        runner.run_plan(path, max_per_task=args.max_n)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="llm-iq-bench", description="大模型能力评测")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -50,6 +73,22 @@ def main(argv=None):
     p_run.add_argument("--model", default="mock", help="configs/models.yaml 中的模型 id")
     p_run.add_argument("--n", type=int, default=None, help="覆盖每个任务的最大样本数")
     p_run.set_defaults(func=cmd_run)
+
+    p_compose = sub.add_parser("compose", help="按时间预算 + 维度动态产 plan")
+    p_compose.add_argument("--time-budget", type=int, required=True, help="时间预算（分钟）")
+    p_compose.add_argument("--dimensions", default="reasoning,coding",
+                           help="逗号分隔维度，默认 reasoning,coding")
+    p_compose.add_argument("--model", default="glm-local", help="模型 id")
+    p_compose.add_argument("--seed", type=int, default=1234, help="随机种子")
+    p_compose.add_argument("--tier", default="L1", choices=["L0", "L1", "L2", "L3"],
+                           help="级别（决定默认 n）")
+    p_compose.add_argument("--max-n", type=int, default=None, help="每任务 n 上限")
+    p_compose.add_argument("--include-hf", action="store_true",
+                           help="纳入 HF-only 任务（默认排除，因不可跑）")
+    p_compose.add_argument("--name", default=None, help="plan 名（缺省 composed_<tier>_<budget>s）")
+    p_compose.add_argument("--out", default=None, help="plan 输出目录（缺省 plans/<name>/）")
+    p_compose.add_argument("--run", action="store_true", help="compose 后立即执行")
+    p_compose.set_defaults(func=cmd_compose)
 
     args = parser.parse_args(argv)
     args.func(args)
