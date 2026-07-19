@@ -79,7 +79,22 @@ def _load_builtin(repo: str) -> list[dict]:
         ]
     if repo == "builtin:ifeval_mini":
         return _ifeval_mini_samples()
+    if repo == "builtin:aime_2024":
+        return _aime_2024_samples()
     raise KeyError(f"unknown builtin dataset: {repo}")
+
+
+def _aime_2024_samples() -> list[dict]:
+    """3 道答案为 0-999 整数的数学题，结构模仿 AIME（验证多采样/self-consistency 路径用）。
+
+    用于在 HF datasets 不可达环境下真实验证 maj@1 / pass@k 双报路径。
+    难度梯度：Q0-1 简单，Q2 略难（验证 n=4 多采样下 maj@1 与 pass@k 差异）。
+    """
+    return [
+        {"question": "A rectangle has length 12 and width 5. What is its area?", "gold": 60},
+        {"question": "How many positive divisors does 60 have?", "gold": 12},
+        {"question": "Find the remainder when 7^100 is divided by 100.", "gold": 1},
+    ]
 
 
 def _ifeval_mini_samples() -> list[dict]:

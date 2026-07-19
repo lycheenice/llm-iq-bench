@@ -71,6 +71,16 @@ datasets:
     fields: {question: Problem, gold: Answer}
     n_default: 30
 
+  aime_2024:
+    dim: reasoning
+    source: builtin
+    repo: builtin:aime_2024
+    split: train
+    version: builtin-2026-07-19
+    license: public-domain-synthetic
+    fields: {question: question, gold: gold}
+    n_default: 3
+
   bbh:
     dim: reasoning
     source: huggingface

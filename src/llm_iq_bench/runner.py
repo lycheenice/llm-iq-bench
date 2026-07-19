@@ -220,6 +220,15 @@ class Runner:
         n_samples = params.pop("n", None)
         multisample = bool(n_samples and n_samples > 1)
         aggregator = bench.get("aggregator") if multisample else None
+        # A2: aggregator 支持 str 或 list[str]（双报）。统一转 list 处理。
+        if multisample:
+            aggregators = [aggregator] if isinstance(aggregator, str) else list(aggregator or [])
+            primary_agg = aggregators[0] if aggregators else None
+            corrects = {a: 0 for a in aggregators}
+            scoreds = {a: 0 for a in aggregators}
+        else:
+            aggregators = []
+            primary_agg = None
 
         correct = 0
         scored = 0
@@ -233,13 +242,22 @@ class Runner:
 
             if multisample:
                 preds = self.client.generate_n(prompt, int(n_samples), **params)
-                try:
-                    verdict = aggregate_multisample(aggregator, preds, gold, extractor, metric, **ctx)
-                except NotImplementedError:
-                    verdict = None
-                if verdict is not None:
+                verdicts = {}
+                for agg in aggregators:
+                    try:
+                        v = aggregate_multisample(agg, preds, gold, extractor, metric, **ctx)
+                    except NotImplementedError:
+                        v = None
+                    verdicts[agg] = v
+                    if v is not None:
+                        scoreds[agg] += 1
+                        if v:
+                            corrects[agg] += 1
+                # primary 累计（向后兼容旧 correct/scored 字段）
+                primary_v = verdicts.get(primary_agg)
+                if primary_v is not None:
                     scored += 1
-                    if verdict:
+                    if primary_v:
                         correct += 1
                 samples_file.write(json.dumps({
                     "benchmark": bench_id,
@@ -247,8 +265,10 @@ class Runner:
                     "prompt": prompt,
                     "n_predictions": preds,
                     "aggregator": aggregator,
+                    "aggregators": aggregators,
                     "gold": gold,
-                    "verdict": verdict,
+                    "verdict": primary_v,
+                    "verdicts": verdicts,
                 }, ensure_ascii=False) + "\n")
                 samples_file.flush()
                 continue
@@ -282,6 +302,13 @@ class Runner:
         if multisample:
             result["aggregator"] = aggregator
             result["n_samples"] = int(n_samples)
+            # A2: 多 aggregator 时输出各 aggregator 独立 score（双报）
+            if len(aggregators) > 1:
+                result["aggregators"] = {
+                    a: round(corrects[a] / scoreds[a], 4) if scoreds[a] else 0.0
+                    for a in aggregators
+                }
+                result["n_per_aggregator"] = {a: scoreds[a] for a in aggregators}
         return result
 
     def _print_summary(self, summary: dict):

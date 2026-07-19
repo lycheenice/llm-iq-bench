@@ -142,6 +142,79 @@ def test_single_sample_path_no_n_predictions():
     assert "n_predictions" not in rows[0], "单采样不应写 n_predictions"
 
 
+# ---------- A2: list aggregator 双报路径 ----------
+
+def _run_aime_mini_mock(tmpdir: Path, n: int = 3):
+    """跑 reasoning_aime_mini（builtin:aime_2024) mock 多采样，返回 outcome + rows。"""
+    from llm_iq_bench.runner import Runner
+    bench_cfg = load_benchmarks()
+    r = Runner(model_id="mock", benchmarks_cfg=bench_cfg)
+    samples_path = tmpdir / "samples.jsonl"
+    with open(samples_path, "w", encoding="utf-8") as f:
+        outcome = r._run_one("reasoning_aime_mini", n, f)
+    rows = [json.loads(l) for l in samples_path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return outcome, rows
+
+
+def test_aime_mini_dataset_loads():
+    """aime_2024 builtin 3 题可加载，gold 都是整数。"""
+    from llm_iq_bench.datasets import load_dataset_samples
+    from llm_iq_bench.config import load_datasets
+    samples = load_dataset_samples("aime_2024", load_datasets(), n=3)
+    assert len(samples) == 3
+    for s in samples:
+        assert "question" in s and "gold" in s
+        assert isinstance(s["gold"], int) and 0 <= s["gold"] <= 999
+
+
+def test_list_aggregator_writes_verdicts_and_outcome_aggregators():
+    """list aggregator：samples 含 verdicts dict，outcome 含 aggregators 双报。"""
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        outcome, rows = _run_aime_mini_mock(Path(d), n=3)
+    assert len(rows) == 3
+    for r in rows:
+        assert r.get("aggregators") == ["maj@1", "pass@k"], f"aggregators 应双报: {r.get('aggregators')}"
+        assert "verdicts" in r and isinstance(r["verdicts"], dict)
+        assert set(r["verdicts"].keys()) == {"maj@1", "pass@k"}
+        # primary 兼容字段：verdict == verdicts[maj@1]
+        assert r.get("verdict") == r["verdicts"]["maj@1"]
+    # outcome 双报
+    assert outcome.get("aggregator") == ["maj@1", "pass@k"]
+    assert "aggregators" in outcome, "outcome 应有 aggregators 双报字段"
+    assert set(outcome["aggregators"].keys()) == {"maj@1", "pass@k"}
+    assert outcome["n_samples"] == 4
+    # pass@k >= maj@1 （任一正确 vs 多数投票，逻辑上必然）
+    assert outcome["aggregators"]["pass@k"] >= outcome["aggregators"]["maj@1"]
+
+
+def test_str_aggregator_backward_compatible():
+    """str aggregator 路径不变（仅 outcome.aggregator 是 str，无 aggregators 字段）。"""
+    import tempfile
+    from llm_iq_bench.runner import Runner
+    bench_cfg = load_benchmarks()
+    bench_cfg["reasoning_aime"] = {
+        "dataset": "aime_2024",
+        "metric": "exact_match_numeric",
+        "answer_extractor": "last_number",
+        "prompt_template": "reasoning_qa",
+        "params": {"temperature": 0.7, "max_tokens": 2048, "n": 4},
+        "aggregator": "maj@1",  # str
+    }
+    r = Runner(model_id="mock", benchmarks_cfg=bench_cfg)
+    with tempfile.TemporaryDirectory() as d:
+        sp = Path(d) / "s.jsonl"
+        with open(sp, "w", encoding="utf-8") as f:
+            outcome = r._run_one("reasoning_aime", 2, f)
+        rows = [json.loads(l) for l in sp.read_text(encoding="utf-8").splitlines() if l.strip()]
+    assert outcome["aggregator"] == "maj@1"  # str 保留
+    assert "aggregators" not in outcome, "str aggregator 不应触发 aggregators 双报字段"
+    for r in rows:
+        assert r.get("aggregator") == "maj@1"
+        # str 路径也写 verdicts（aggregators=[maj@1]），但单元素无 aggregators 字段
+        assert "verdicts" in r and r["verdicts"].get("maj@1") is not None
+
+
 # ---------- 纯 python 入口 ----------
 
 def _main():

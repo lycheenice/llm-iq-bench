@@ -1,0 +1,29 @@
+{
+  "plan": "aime_selfconsistency",
+  "model": "glm-local",
+  "timestamp": "20260719T155659Z",
+  "seed": 1234,
+  "tasks": {
+    "reasoning_aime_mini": {
+      "metric": "exact_match_numeric",
+      "score": 1.0,
+      "n": 3,
+      "total": 3,
+      "aggregator": [
+        "maj@1",
+        "pass@k"
+      ],
+      "n_samples": 4,
+      "aggregators": {
+        "maj@1": 1.0,
+        "pass@k": 1.0
+      },
+      "n_per_aggregator": {
+        "maj@1": 3,
+        "pass@k": 3
+      }
+    }
+  },
+  "tag": null,
+  "run_dir": "/home/lychee/mycode/llm-iq-bench/results/aime_selfconsistency_glm-local_20260719T155659Z"
+}

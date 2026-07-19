@@ -1,0 +1,8 @@
+name: aime_selfconsistency
+tier: L1
+time_budget_min: 10
+seed: 1234
+description: A2 验证 plan — 真实 GLM-5.2 跑 reasoning_aime_mini 3 题 × n=4 多采样，验证 maj@1 + pass@k 双报路径。
+model: glm-local
+tasks:
+  - {benchmark: reasoning_aime_mini, n: 3}
