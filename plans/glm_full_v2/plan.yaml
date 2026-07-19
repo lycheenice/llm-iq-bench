@@ -1,0 +1,15 @@
+name: glm_full_v2
+tier: L2
+time_budget_min: 40
+seed: 1234
+description: GLM-5.2 全量对比 v2 — 6 维度 8 任务 167 题，覆盖 coding/agent/long_context/instruction_following/reasoning/multilingual。用于多轮稳定性对比（同 plan 不同 seed 跑 3 轮）。
+model: glm-local
+tasks:
+  - {benchmark: reasoning_gsm8k,        n: 30}
+  - {benchmark: coding_humaneval,       n: 30}
+  - {benchmark: coding_mbpp,            n: 30}
+  - {benchmark: agent_bfcl,             n: 30}
+  - {benchmark: long_needle,            n: 9}
+  - {benchmark: ifeval_mini_strict,     n: 8}
+  - {benchmark: multilingual_mgsm,      n: 20}
+  - {benchmark: reasoning_bbh_navigate, n: 20}

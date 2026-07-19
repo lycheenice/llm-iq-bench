@@ -29,7 +29,33 @@ def load_dataset_samples(dataset_id: str, datasets_cfg: dict, n: int | None = No
     if n is not None and n < len(samples):
         rng = random.Random(seed)
         samples = rng.sample(samples, n)
+    # P1: 按 spec.fields 把源字段拷到标准名，确保 prompts.render 能取到 question/context/choices
+    fields = spec.get("fields", {}) if spec else {}
+    if fields:
+        samples = [_normalize_sample(s, fields) for s in samples]
     return samples
+
+
+# 标准键名（prompts.render 与 runner 期望的键）
+_CANONICAL_KEYS = ("question", "choices", "gold", "context", "prompt",
+                   "answer", "entry_point", "test", "instructions", "type")
+
+
+def _normalize_sample(sample: dict, fields: dict) -> dict:
+    """按 fields 把源字段值拷到标准键名（若标准键不存在）。
+
+    fields: {canonical_name: source_name_or_index}。
+    原键保留不删，仅补齐标准键。已有标准键不覆盖（向后兼容）。
+    """
+    out = dict(sample)
+    for canon, src in fields.items():
+        if canon in _CANONICAL_KEYS and src not in (None, ""):
+            if isinstance(src, int):
+                # TSV 无表头列号已在 _parse 阶段重命名，这里一般不触发
+                continue
+            if canon not in out and src in out:
+                out[canon] = out[src]
+    return out
 
 
 def _load_builtin(repo: str) -> list[dict]:

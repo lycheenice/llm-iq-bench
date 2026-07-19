@@ -155,3 +155,92 @@ def _render_comparison(runs: list[dict]) -> str:
 
     lines += ["", f"_由 reporter.build_comparison 生成于 {dt.datetime.now(dt.UTC).isoformat(timespec='seconds')}。_"]
     return "\n".join(lines)
+
+
+def build_variance_report(runs: list[dict], out_path: Path | None = None) -> str:
+    """对同一 plan 的 N 次复测，计算每任务得分的均值/极差/标准差。
+
+    runs: list[summary dict]，应来自同一 plan（按 plan name 过滤由调用方负责）。
+    返回 md 字符串；若 out_path 给定则同时落盘。
+    排除 skipped/errored 任务。
+    """
+    from statistics import mean, pstdev
+    if not runs:
+        md = "# 多轮稳定性报告\n\n（暂无 run）\n"
+        if out_path:
+            out_path.write_text(md, encoding="utf-8")
+        return md
+
+    plan_name = runs[0].get("plan", "?")
+    model = runs[0].get("model", "?")
+    seeds = [r.get("seed") for r in runs]
+    timestamps = [r.get("timestamp", "") for r in runs]
+
+    # 收集所有非 skipped/errored 任务 id
+    all_bids: list[str] = []
+    seen = set()
+    for r in runs:
+        for bid, t in r.get("tasks", {}).items():
+            if bid not in seen and not t.get("skipped") and not t.get("errored"):
+                seen.add(bid); all_bids.append(bid)
+
+    lines = [
+        f"# 多轮稳定性报告 — {model}",
+        "",
+        f"- 方案: `{plan_name}` | 模型: `{model}` | 轮数: {len(runs)}",
+        f"- seeds: {seeds}",
+        f"- 时间: {timestamps}",
+        "",
+        "## 各任务跨轮得分",
+        "",
+        "| 任务 | " + " | ".join(f"轮{i+1}" for i in range(len(runs))) + " | 均值 | 极差 | 标准差 | 稳定 |",
+        "|" + "---|" * (len(runs) + 5),
+    ]
+    stable_count = 0
+    total_count = 0
+    for bid in all_bids:
+        scores = []
+        for r in runs:
+            t = r.get("tasks", {}).get(bid)
+            if t and not t.get("skipped") and not t.get("errored") and isinstance(t.get("score"), (int, float)):
+                scores.append(float(t["score"]))
+            else:
+                scores.append(None)
+        valid = [s for s in scores if s is not None]
+        if len(valid) < 2:
+            continue
+        total_count += 1
+        rng = max(valid) - min(valid)
+        sd = pstdev(valid) if len(valid) > 1 else 0.0
+        avg = mean(valid)
+        stable = rng <= 0.05
+        if stable:
+            stable_count += 1
+        cells = [f"{s:.3f}" if s is not None else "—" for s in scores]
+        lines.append(f"| {bid} | " + " | ".join(cells) + f" | {avg:.3f} | {rng:.3f} | {sd:.3f} | {'✓' if stable else '✗'} |")
+
+    overall_scores = []
+    for r in runs:
+        scored = _scored_tasks(r.get("tasks", {}))
+        if scored:
+            overall_scores.append(sum(t["score"] for t in scored) / len(scored))
+    if overall_scores:
+        ov_rng = max(overall_scores) - min(overall_scores)
+        ov_sd = pstdev(overall_scores) if len(overall_scores) > 1 else 0.0
+        ov_avg = mean(overall_scores)
+        lines += ["", "## 综合得分跨轮", "",
+                  "| " + " | ".join(f"轮{i+1}" for i in range(len(runs))) + " | 均值 | 极差 | 标准差 |",
+                  "|" + "---|" * (len(runs) + 3)]
+        lines.append("| " + " | ".join(f"{s:.3f}" for s in overall_scores) +
+                     f" | {ov_avg:.3f} | {ov_rng:.3f} | {ov_sd:.3f} |")
+
+    lines += ["", f"## 结论", "",
+              f"- {stable_count}/{total_count} 任务极差 ≤ 0.05（稳定）。",
+              "- temp=0 任务理论上应 0 方差；非 0 方差反映服务端非确定性或浮点累积。",
+              "- temp>0 任务（如 AIME n=4）跨 seed 应有方差（预期）。",
+              "",
+              f"_由 reporter.build_variance_report 生成于 {dt.datetime.now(dt.UTC).isoformat(timespec='seconds')}。_"]
+    md = "\n".join(lines)
+    if out_path:
+        out_path.write_text(md, encoding="utf-8")
+    return md
