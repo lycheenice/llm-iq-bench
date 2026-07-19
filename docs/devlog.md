@@ -2,6 +2,41 @@
 
 > 本文件用于记录仓库进展，方便后续接力。按时间倒序追加新条目。
 
+## 2026-07-19 — GLM-5.2 本机真实评测验证（glm_local_real plan）
+
+> P0 完成后基于**当前机器服务端点** (sglang @ localhost:8001) 跑一轮真实评测，验证最新代码端到端通畅并产出分析报告。
+
+### 评测配置
+- plan: `plans/glm_local_real/plan.yaml`（tier=L1, seed=1234, time_budget=30min）
+- model: `glm-local`（api id=glm, 300k context, 推理模型, 8×H200）
+- 5 任务 / 167 题：coding_humaneval(50) + coding_mbpp(50) + agent_bfcl(50) + long_needle(9) + ifeval_mini_strict(8)
+
+### 结果
+| 任务 | 得分 | 通过/总 |
+|---|---|---|
+| HumanEval | 0.88 | 44/50 |
+| MBPP | 0.42 | 21/50 |
+| BFCL | 0.90 | 45/50 |
+| Needle 4-32k | 1.00 | 9/9 |
+| IFEval mini | 0.90 | 9/10 指令 |
+
+综合 0.82。BFCL 分类：simple 0.89 / multiple 0.78 / parallel 1.00 / irrelevance 0.92。Needle 4k-32k 全满。
+
+### 关键发现
+- **MBPP 42% 偏低归因**：抽查 `common_element` 确认为模型真实行为非评分器 bug —— 模型 `bool(set&set)` 返回 `False`，gold 期望 `None`，`False==None` AssertionError。属「返回值语义对齐」不足，非代码逻辑错。P1 可改 `mbpp_task` prompt 提示题目约定。
+- **维度覆盖受限**：knowledge/reasoning/multilingual/safety 因 `datasets` 库被仓库 `datasets/` 目录 namespace 污染无法导入，HF 数据集本轮不可达 → P1 修 `_load_hf` 绝对导入或重命名仓库目录。
+- **config_snapshot 冻结有效**：seed=1234 / git commit 2465bba / api_key 脱敏（***MPTY）/ 5 benchmark 全记录。
+
+### 产物
+- `docs/analysis_glm_local_20260719.md`：综合分析报告（含雷达/水平柱/BFCL分类/Needle热力 4 图）
+- `scripts/gen_analysis_report.py`：可复用分析报告生成器
+- `plans/glm_local_real/plan.yaml` + `ifenv_mini_strict` benchmark（离线 IFEval 验证用）
+- `reports/runs/glm_local_real__glm-local__*.json/md`：tracked 快照
+- `results/glm_local_real_glm-local_20260719T095029Z/`：完整原始数据（gitignored）
+
+### 验证结论
+P0 五项功能在真实 GLM-5.2 服务上端到端通畅：多采样路径（本轮 temp=0 未触发，但单采样路径稳定）、配置冻结+seed（config_snapshot 完整）、errored 标记（本轮无 errored）、IFEval 执行器（产出 score=0.9 + 逐指令 verdict）、分级 plan（L1 跑通）。53/53 单测仍绿。
+
 ## 2026-07-19 — P0 完成（多采样 / 配置冻结 / 分级 / IFEval）
 
 > 接前条规划。五项 P0 全部按「设计文档 → 单测 → 实现 → 验证 → 提交推送」落地。

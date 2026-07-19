@@ -1,0 +1,48 @@
+{
+  "plan": "glm_local_real",
+  "model": "glm-local",
+  "timestamp": "20260719T095029Z",
+  "seed": 1234,
+  "tasks": {
+    "coding_humaneval": {
+      "metric": "pass_at_1",
+      "score": 0.88,
+      "n": 50,
+      "total": 50,
+      "benchmark": "coding_humaneval"
+    },
+    "coding_mbpp": {
+      "metric": "pass_at_1",
+      "score": 0.42,
+      "n": 50,
+      "total": 50,
+      "benchmark": "coding_mbpp"
+    },
+    "agent_bfcl": {
+      "metric": "function_call_accuracy",
+      "score": 0.9,
+      "n": 50,
+      "total": 50,
+      "benchmark": "agent_bfcl"
+    },
+    "long_needle": {
+      "metric": "exact_match_text",
+      "score": 1.0,
+      "n": 9,
+      "total": 9,
+      "benchmark": "long_needle"
+    },
+    "ifeval_mini_strict": {
+      "metric": "ifeval_strict",
+      "score": 0.9,
+      "score_loose": 0.9,
+      "n": 8,
+      "total": 8,
+      "aggregator": "per_instruction",
+      "instructions_total": 10,
+      "benchmark": "ifeval_mini_strict"
+    }
+  },
+  "tag": null,
+  "run_dir": "/home/lychee/mycode/llm-iq-bench/results/glm_local_real_glm-local_20260719T095029Z"
+}

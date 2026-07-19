@@ -1,0 +1,12 @@
+name: glm_local_real
+tier: L1
+time_budget_min: 30
+seed: 1234
+description: GLM-5.2 本机真实评测 — 基于当前机器服务端点(localhost:8001 sglang)与本地可用数据集，覆盖 coding/agent/long_context/instruction_following 四维度。HF datasets 库因 namespace 冲突暂不可用，知识/推理/安全/多语言维度本轮跳过。
+model: glm-local
+tasks:
+  - {benchmark: coding_humaneval,      n: 50}
+  - {benchmark: coding_mbpp,           n: 50}
+  - {benchmark: agent_bfcl,            n: 50}
+  - {benchmark: long_needle,           n: 9}
+  - {benchmark: ifeval_mini_strict,    n: 8}

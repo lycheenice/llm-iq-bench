@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="210" viewBox="0 0 600 210" font-family="-apple-system,Segoe UI,Roboto,sans-serif">
+<text x="300.0" y="24" text-anchor="middle" font-size="14" font-weight="600" fill="#111">GLM-5.2 各任务得分</text>
+<line x1="130" y1="40" x2="130" y2="190" stroke="#e5e7eb"/>
+<text x="130" y="204" text-anchor="middle" font-size="9" fill="#9ca3af">0.00</text>
+<line x1="335.0" y1="40" x2="335.0" y2="190" stroke="#e5e7eb"/>
+<text x="335.0" y="204" text-anchor="middle" font-size="9" fill="#9ca3af">0.50</text>
+<line x1="540.0" y1="40" x2="540.0" y2="190" stroke="#e5e7eb"/>
+<text x="540.0" y="204" text-anchor="middle" font-size="9" fill="#9ca3af">1.00</text>
+<rect x="130" y="43.0" width="410.0" height="24" fill="#2563eb"/>
+<text x="124" y="59.8" text-anchor="end" font-size="11" fill="#374151">Needle 4-32k</text>
+<text x="544.0" y="59.8" font-size="10" fill="#2563eb">100.0%</text>
+<rect x="130" y="73.0" width="369.0" height="24" fill="#16a34a"/>
+<text x="124" y="89.8" text-anchor="end" font-size="11" fill="#374151">BFCL 函数调用</text>
+<text x="503.0" y="89.8" font-size="10" fill="#16a34a">90.0%</text>
+<rect x="130" y="103.0" width="369.0" height="24" fill="#9333ea"/>
+<text x="124" y="119.8" text-anchor="end" font-size="11" fill="#374151">IFEval mini (str</text>
+<text x="503.0" y="119.8" font-size="10" fill="#9333ea">90.0%</text>
+<rect x="130" y="133.0" width="360.8" height="24" fill="#ea580c"/>
+<text x="124" y="149.8" text-anchor="end" font-size="11" fill="#374151">HumanEval (pass@</text>
+<text x="494.8" y="149.8" font-size="10" fill="#ea580c">88.0%</text>
+<rect x="130" y="163.0" width="172.2" height="24" fill="#dc2626"/>
+<text x="124" y="179.8" text-anchor="end" font-size="11" fill="#374151">MBPP (pass@1)</text>
+<text x="306.2" y="179.8" font-size="10" fill="#dc2626">42.0%</text>
+</svg>
