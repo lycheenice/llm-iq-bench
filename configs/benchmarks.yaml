@@ -27,6 +27,7 @@ benchmarks:
     dataset: gsm8k
     metric: exact_match_numeric
     answer_extractor: last_number
+    gold_extractor: last_number
     prompt_template: reasoning_qa
     params: {temperature: 0, max_tokens: 512}
 
@@ -50,6 +51,12 @@ benchmarks:
     metric: exact_match_text
     prompt_template: reasoning_qa
     params: {temperature: 0, max_tokens: 256}
+
+  reasoning_bbh_navigate:
+    dataset: bbh_navigate
+    metric: exact_match_text
+    prompt_template: reasoning_qa
+    params: {temperature: 0, max_tokens: 512}
 
   reasoning_arc:
     dataset: arc_challenge
@@ -162,6 +169,7 @@ benchmarks:
     dataset: mgsm
     metric: exact_match_numeric
     answer_extractor: last_number
+    gold_extractor: last_number
     prompt_template: reasoning_qa
     params: {temperature: 0, max_tokens: 512}
 

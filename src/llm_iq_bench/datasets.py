@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import csv
 import gzip
 import json
 import os
 import random
 from pathlib import Path
 from typing import Iterator
+
+import requests
 
 BUILTIN_DIR = Path(__file__).resolve().parents[2] / "datasets"
 
@@ -19,6 +22,8 @@ def load_dataset_samples(dataset_id: str, datasets_cfg: dict, n: int | None = No
         samples = _load_hf(spec)
     elif source == "local":
         samples = _load_local(spec)
+    elif source == "web":
+        samples = _load_web(spec, dataset_id)
     else:
         raise ValueError(f"unknown source: {source}")
     if n is not None and n < len(samples):
@@ -121,3 +126,67 @@ def _read_json(path: Path) -> list[dict]:
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return data if isinstance(data, list) else [data]
+
+
+# ============================ web 数据源（P1） ============================
+# 无 HF datasets 库时，直接 requests 拉 GitHub raw / hf-mirror 的 JSONL/CSV/TSV/JSON。
+# 缓存到 datasets/<dim>/cache/<id>.<ext>，二次跑零网络。
+
+def _load_web(spec: dict, dataset_id: str) -> list[dict]:
+    url = spec["url"]
+    fmt = spec.get("format", "jsonl")
+    dim = spec.get("dim", "_misc")
+    cache_dir = BUILTIN_DIR / dim / "cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    ext = "jsonl.gz" if url.endswith(".gz") else fmt
+    cache = cache_dir / f"{dataset_id}.{ext}"
+    if not cache.exists():
+        try:
+            resp = requests.get(url, timeout=30)
+            resp.raise_for_status()
+        except Exception as e:
+            raise RuntimeError(f"web 数据集下载失败 {url}: {type(e).__name__}: {e}")
+        cache.write_bytes(resp.content)
+    return _parse(cache, fmt, spec)
+
+
+def _parse(path: Path, fmt: str, spec: dict) -> list[dict]:
+    """按格式解析缓存文件为 list[dict]。fields 值为 int 时按列号取（无表头 TSV）。"""
+    fields = spec.get("fields", {}) if spec else {}
+    opener = gzip.open if str(path).endswith(".gz") else open
+    if fmt == "jsonl":
+        out = []
+        with opener(path, "rt", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    out.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+        return out
+    if fmt == "json":
+        with opener(path, "rt", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            data = data.get("examples") or data.get("data") or data.get("items") or [data]
+        return [dict(r) for r in data]
+    if fmt in ("csv", "tsv"):
+        delim = "\t" if fmt == "tsv" else ","
+        out = []
+        with opener(path, "rt", encoding="utf-8", newline="") as f:
+            # fields 值有 int → 无表头，按列号取并按 fields 的 key 重命名
+            int_fields = {k: v for k, v in fields.items() if isinstance(v, int)}
+            has_header = not int_fields
+            if has_header:
+                reader = csv.DictReader(f, delimiter=delim)
+                for row in reader:
+                    out.append(dict(row))
+            else:
+                reader = csv.reader(f, delimiter=delim)
+                for row in reader:
+                    rec = {name: row[idx] if idx < len(row) else "" for name, idx in int_fields.items()}
+                    out.append(rec)
+        return out
+    raise ValueError(f"unknown web format: {fmt}")

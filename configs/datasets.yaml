@@ -43,13 +43,12 @@ datasets:
 
   gsm8k:
     dim: reasoning
-    source: huggingface
-    repo: openai/gsm8k
-    name: main
-    split: test
-    version: latest
+    source: web
+    url: https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data/test.jsonl
+    format: jsonl
+    version: 2023-openai-github
     license: MIT
-    fields: {question: question, gold: answer_numeric}
+    fields: {question: question, gold: answer}
     n_default: 500
 
   math:
@@ -227,13 +226,23 @@ datasets:
 
   mgsm:
     dim: multilingual
-    source: huggingface
-    repo: juletxha/mgsm
-    split: test
-    version: latest
+    source: web
+    url: https://raw.githubusercontent.com/google-research/url-nlp/main/mgsm/mgsm_fr.tsv
+    format: tsv
+    version: 2022-google-research-github
+    license: Apache-2.0
+    fields: {question: 0, gold: 1}
+    n_default: 250
+
+  bbh_navigate:
+    dim: reasoning
+    source: web
+    url: https://raw.githubusercontent.com/suzgunmirac/BIG-Bench-Hard/main/bbh/navigate.json
+    format: json
+    version: 2022-suzgunmirac-github
     license: MIT
-    fields: {question: question, gold: answer_number}
-    n_default: 500
+    fields: {question: input, gold: target}
+    n_default: 250
 
   longbench:
     dim: long_context

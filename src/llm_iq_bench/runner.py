@@ -215,6 +215,7 @@ class Runner:
 
         template = bench.get("prompt_template", "raw")
         extractor = bench.get("answer_extractor")
+        gold_extractor = bench.get("gold_extractor")  # P1: gold 为长文本时单独提取（默认 None=不提取）
         params = dict(bench.get("params", {}))
         n_samples = params.pop("n", None)
         multisample = bool(n_samples and n_samples > 1)
@@ -227,6 +228,8 @@ class Runner:
             ctx = {"choices": sample.get("choices", []),
                    "query_type": sample.get("type")}
             gold = sample.get("gold") if "gold" in sample else _gold_from(spec, sample)
+            if isinstance(gold, str) and gold_extractor:
+                gold = _answer_extractor(gold, gold_extractor)
 
             if multisample:
                 preds = self.client.generate_n(prompt, int(n_samples), **params)
