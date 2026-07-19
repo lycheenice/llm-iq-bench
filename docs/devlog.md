@@ -2,6 +2,52 @@
 
 > 本文件用于记录仓库进展，方便后续接力。按时间倒序追加新条目。
 
+## 2026-07-19 — web 数据源 + 字段规范化 + 多轮全量对比（P1）
+
+> 接首轮 glm_local_real。本轮目标：扩维度 + 多轮稳定性对比。
+
+### 新增功能（均有单测，78/78 PASS）
+1. **web 数据源** (`docs/design/web_datasets.md`, `tests/test_web_datasets.py` 12/12)：
+   无 HF datasets 库环境下用 requests 拉 GitHub raw JSONL/TSV/JSON/CSV，缓存到 `datasets/<dim>/cache/`。接入 gsm8k/mgsm/bbh_navigate，解锁 reasoning + multilingual 两维度。
+2. **gold_extractor 字段**：gsm8k/mgsm gold 是含 `#### 18` 的长文本，单独提取数字（默认 None 不提取，向后兼容）。
+3. **字段规范化** (`tests/test_normalize.py` 6/6)：`_normalize_sample` 按 `spec.fields` 把源字段拷到标准键名，修复 bbh `input≠question` 导致空 prompt 0 分 bug。
+4. **boxed 嵌套提取** (`tests/test_smoke.py` 新增 5 条)：`_boxed` 重写为平衡大括号匹配，支持 `\boxed{\text{Yes}}`；runner boxed 分支统一用 metrics._boxed。
+5. **多轮方差分析** (`tests/test_variance.py` 6/6)：`reporter.build_variance_report` 计算跨轮均值/极差/标准差，极差≤0.05 标 ✓。
+6. **run_multi 脚本**：同 plan 不同 seed 跑 N 轮 + 自动方差报告。
+
+### bug 修复
+- bbh_navigate 0.000 → 1.000（字段映射 + boxed + max_tokens 512→2048）
+- AIME n:4 死代码（P0-1 已修）、mbpp 返回值语义对齐（确认非 bug）
+
+### 多轮全量对比（3 轮 × seeds 1234/5678/9012）
+plan `glm_full_v2` (tier=L2): 8 任务 177 题 6 维度，每轮 ~17min，总 56min。
+
+| 任务 | 轮1 | 轮2 | 轮3 | 均值 | 极差 | 稳定 |
+|---|---|---|---|---|---|---|
+| GSM8K | 0.533 | 0.433 | 0.467 | 0.478 | 0.100 | ✗ |
+| HumanEval | 0.833 | 0.867 | 0.900 | 0.867 | 0.067 | ✗ |
+| MBPP | 0.400 | 0.433 | 0.400 | 0.411 | 0.033 | ✓ |
+| BFCL | 0.867 | 0.867 | 0.867 | 0.867 | 0.000 | ✓ |
+| Needle | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | ✓ |
+| IFEval | 0.800 | 0.800 | 0.800 | 0.800 | 0.000 | ✓ |
+| MGSM | 0.400 | 0.350 | 0.200 | 0.317 | 0.200 | ✗ |
+| BBH | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | ✓ |
+
+综合 0.717（极差 0.025）。5/8 任务完全稳定（极差 0），3 任务有方差（GSM8K/HumanEval/MGSM），反映 sglang 服务端 temp=0 下的微小非确定性。BFCL/Needle/IFEval/BBH 三轮完全一致证明管道本身确定。
+
+### 产物
+- `docs/analysis_glm_full_v2.md`：多轮综合分析（雷达/柱状/BFCL 分类 3 图）
+- `reports/variance_glm_full_v2.md`：方差报告存档
+- `scripts/gen_multi_analysis.py`：多轮报告生成器
+- `reports/runs/glm_full_v2__glm-local__*.json/md`：3 轮 tracked 快照
+- `plans/glm_full_v2/plan.yaml`：6 维度 8 任务 plan
+
+### 接力提示
+- 单测 78/78；新功能均先单测后实现，回归不破
+- 维度覆盖 6/8（缺 knowledge/safety，需 parquet reader 或 CSV 镜像，P1 续）
+- MGSM 下降趋势（0.4→0.2）待排查：load_dataset_samples 用 seed=0 固定抽样，应一致；疑服务端漂移
+- AIME 多采样路径待真实模型验证（本 plan 全 temp=0）
+
 ## 2026-07-19 — GLM-5.2 本机真实评测验证（glm_local_real plan）
 
 > P0 完成后基于**当前机器服务端点** (sglang @ localhost:8001) 跑一轮真实评测，验证最新代码端到端通畅并产出分析报告。

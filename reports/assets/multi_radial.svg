@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="440" viewBox="0 0 400 440" font-family="-apple-system,Segoe UI,Roboto,sans-serif">
+<text x="200.0" y="20" text-anchor="middle" font-size="14" font-weight="600" fill="#111">GLM-5.2 三轮叠加 (8 任务)</text>
+<polygon points="200.0,164.0 225.5,174.5 236.0,200.0 225.5,225.5 200.0,236.0 174.5,225.5 164.0,200.0 174.5,174.5" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+<text x="204.0" y="164.0" font-size="9" fill="#9ca3af">0.25</text>
+<polygon points="200.0,128.0 250.9,149.1 272.0,200.0 250.9,250.9 200.0,272.0 149.1,250.9 128.0,200.0 149.1,149.1" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+<text x="204.0" y="128.0" font-size="9" fill="#9ca3af">0.50</text>
+<polygon points="200.0,92.0 276.4,123.6 308.0,200.0 276.4,276.4 200.0,308.0 123.6,276.4 92.0,200.0 123.6,123.6" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+<text x="204.0" y="92.0" font-size="9" fill="#9ca3af">0.75</text>
+<polygon points="200.0,56.0 301.8,98.2 344.0,200.0 301.8,301.8 200.0,344.0 98.2,301.8 56.0,200.0 98.2,98.2" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+<text x="204.0" y="56.0" font-size="9" fill="#9ca3af">1.00</text>
+<line x1="200.0" y1="200.0" x2="200.0" y2="56.0" stroke="#d1d5db"/>
+<text x="200.0" y="38.7" text-anchor="middle" font-size="11" fill="#374151">GSM8K</text>
+<line x1="200.0" y1="200.0" x2="301.8" y2="98.2" stroke="#d1d5db"/>
+<text x="314.0" y="86.0" text-anchor="start" font-size="11" fill="#374151">HumanEval</text>
+<line x1="200.0" y1="200.0" x2="344.0" y2="200.0" stroke="#d1d5db"/>
+<text x="361.3" y="200.0" text-anchor="start" font-size="11" fill="#374151">MBPP</text>
+<line x1="200.0" y1="200.0" x2="301.8" y2="301.8" stroke="#d1d5db"/>
+<text x="314.0" y="314.0" text-anchor="start" font-size="11" fill="#374151">BFCL</text>
+<line x1="200.0" y1="200.0" x2="200.0" y2="344.0" stroke="#d1d5db"/>
+<text x="200.0" y="361.3" text-anchor="middle" font-size="11" fill="#374151">Needle</text>
+<line x1="200.0" y1="200.0" x2="98.2" y2="301.8" stroke="#d1d5db"/>
+<text x="86.0" y="314.0" text-anchor="end" font-size="11" fill="#374151">IFEval</text>
+<line x1="200.0" y1="200.0" x2="56.0" y2="200.0" stroke="#d1d5db"/>
+<text x="38.7" y="200.0" text-anchor="end" font-size="11" fill="#374151">MGSM</text>
+<line x1="200.0" y1="200.0" x2="98.2" y2="98.2" stroke="#d1d5db"/>
+<text x="86.0" y="86.0" text-anchor="end" font-size="11" fill="#374151">BBH</text>
+<polygon points="200.0,123.2 284.8,115.2 257.6,200.0 288.3,288.3 200.0,344.0 118.5,281.5 142.4,200.0 98.2,98.2 200.0,123.2" fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="2"/>
+<circle cx="200.0" cy="123.2" r="3" fill="#2563eb"/>
+<circle cx="284.8" cy="115.2" r="3" fill="#2563eb"/>
+<circle cx="257.6" cy="200.0" r="3" fill="#2563eb"/>
+<circle cx="288.3" cy="288.3" r="3" fill="#2563eb"/>
+<circle cx="200.0" cy="344.0" r="3" fill="#2563eb"/>
+<circle cx="118.5" cy="281.5" r="3" fill="#2563eb"/>
+<circle cx="142.4" cy="200.0" r="3" fill="#2563eb"/>
+<circle cx="98.2" cy="98.2" r="3" fill="#2563eb"/>
+<polygon points="200.0,137.6 288.3,111.7 262.4,200.0 288.3,288.3 200.0,344.0 118.5,281.5 149.6,200.0 98.2,98.2 200.0,137.6" fill="#dc2626" fill-opacity="0.18" stroke="#dc2626" stroke-width="2"/>
+<circle cx="200.0" cy="137.6" r="3" fill="#dc2626"/>
+<circle cx="288.3" cy="111.7" r="3" fill="#dc2626"/>
+<circle cx="262.4" cy="200.0" r="3" fill="#dc2626"/>
+<circle cx="288.3" cy="288.3" r="3" fill="#dc2626"/>
+<circle cx="200.0" cy="344.0" r="3" fill="#dc2626"/>
+<circle cx="118.5" cy="281.5" r="3" fill="#dc2626"/>
+<circle cx="149.6" cy="200.0" r="3" fill="#dc2626"/>
+<circle cx="98.2" cy="98.2" r="3" fill="#dc2626"/>
+<polygon points="200.0,132.8 291.6,108.4 257.6,200.0 288.3,288.3 200.0,344.0 118.5,281.5 171.2,200.0 98.2,98.2 200.0,132.8" fill="#16a34a" fill-opacity="0.18" stroke="#16a34a" stroke-width="2"/>
+<circle cx="200.0" cy="132.8" r="3" fill="#16a34a"/>
+<circle cx="291.6" cy="108.4" r="3" fill="#16a34a"/>
+<circle cx="257.6" cy="200.0" r="3" fill="#16a34a"/>
+<circle cx="288.3" cy="288.3" r="3" fill="#16a34a"/>
+<circle cx="200.0" cy="344.0" r="3" fill="#16a34a"/>
+<circle cx="118.5" cy="281.5" r="3" fill="#16a34a"/>
+<circle cx="171.2" cy="200.0" r="3" fill="#16a34a"/>
+<circle cx="98.2" cy="98.2" r="3" fill="#16a34a"/>
+<rect x="10" y="420" width="12" height="12" fill="#2563eb"/>
+<text x="26" y="430" font-size="11" fill="#374151">seed=1234</text>
+<rect x="113" y="420" width="12" height="12" fill="#dc2626"/>
+<text x="129" y="430" font-size="11" fill="#374151">seed=5678</text>
+<rect x="216" y="420" width="12" height="12" fill="#16a34a"/>
+<text x="232" y="430" font-size="11" fill="#374151">seed=9012</text>
+</svg>
