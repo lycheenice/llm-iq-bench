@@ -14,7 +14,7 @@ except ImportError:
 from .config import load_models, load_datasets, load_benchmarks, load_suite, load_plan
 from .models import build_model_client
 from .datasets import load_dataset_samples
-from .metrics import compute_metric
+from .metrics import compute_metric, aggregate_multisample
 from .prompts import render
 from . import executors
 
@@ -118,18 +118,45 @@ class Runner:
         metric = bench["metric"]
         template = bench.get("prompt_template", "raw")
         extractor = bench.get("answer_extractor")
-        params = bench.get("params", {})
+        params = dict(bench.get("params", {}))
+        n_samples = params.pop("n", None)
+        multisample = bool(n_samples and n_samples > 1)
+        aggregator = bench.get("aggregator") if multisample else None
 
         correct = 0
         scored = 0
         for sample in tqdm(samples, desc=bench_id, disable=False):
             prompt = render(template, sample)
-            pred = self.client.generate(prompt, **params)
-            pred_ans = _answer_extractor(pred, extractor)
             ctx = {"choices": sample.get("choices", []),
                    "query_type": sample.get("type")}
+            gold = sample.get("gold") if "gold" in sample else _gold_from(spec, sample)
+
+            if multisample:
+                preds = self.client.generate_n(prompt, int(n_samples), **params)
+                try:
+                    verdict = aggregate_multisample(aggregator, preds, gold, extractor, metric, **ctx)
+                except NotImplementedError:
+                    verdict = None
+                if verdict is not None:
+                    scored += 1
+                    if verdict:
+                        correct += 1
+                samples_file.write(json.dumps({
+                    "benchmark": bench_id,
+                    "dataset": dataset_id,
+                    "prompt": prompt,
+                    "n_predictions": preds,
+                    "aggregator": aggregator,
+                    "gold": gold,
+                    "verdict": verdict,
+                }, ensure_ascii=False) + "\n")
+                samples_file.flush()
+                continue
+
+            pred = self.client.generate(prompt, **params)
+            pred_ans = _answer_extractor(pred, extractor)
             try:
-                verdict = compute_metric(metric, pred_ans, sample.get("gold") if "gold" in sample else _gold_from(spec, sample), **ctx)
+                verdict = compute_metric(metric, pred_ans, gold, **ctx)
             except NotImplementedError:
                 verdict = None
 
@@ -145,13 +172,17 @@ class Runner:
                 "dataset": dataset_id,
                 "prompt": prompt,
                 "prediction": pred,
-                "gold": sample.get("gold") or _gold_from(spec, sample),
+                "gold": gold,
                 "verdict": verdict,
             }, ensure_ascii=False) + "\n")
             samples_file.flush()
 
         score = correct / scored if scored else 0.0
-        return {"metric": metric, "score": round(score, 4), "n": scored, "total": len(samples)}
+        result = {"metric": metric, "score": round(score, 4), "n": scored, "total": len(samples)}
+        if multisample:
+            result["aggregator"] = aggregator
+            result["n_samples"] = int(n_samples)
+        return result
 
     def _print_summary(self, summary: dict):
         print("\n=== Summary ===")

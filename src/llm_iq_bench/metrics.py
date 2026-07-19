@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import string
+from collections import Counter
 
 
 def compute_metric(metric: str, prediction: str, gold, **ctx) -> bool | float:
@@ -130,3 +131,66 @@ METRICS = {
     "function_call_accuracy": function_call_accuracy,
     "f1": f1,
 }
+
+
+# ============================ 多采样聚合（P0-1） ============================
+# maj@1 / pass@k 不走单采样 METRICS 路径；runner 在 n>1 时直接调用本节函数。
+# 刻意不注册进 METRICS dict，避免单采样路径误用（签名不同：接 list[str]）。
+
+def _extract_answer(pred: str, extractor: str | None) -> str:
+    if extractor == "last_number":
+        m = re.findall(r"-?\d+\.?\d*", pred.replace(",", ""))
+        return m[-1].strip() if m else _norm_text(pred)
+    if extractor == "boxed":
+        m = re.findall(r"\\boxed\{([^}]*)\}", pred)
+        return m[-1].strip() if m else _norm_text(pred)
+    return _norm_text(pred)
+
+
+def maj_at_1(predictions: list[str], gold, extractor: str | None = None) -> bool:
+    """self-consistency 多数投票：n 条预测经 answer extraction 后取众数，比对 gold。
+
+    平票时 Counter.most_common 保留首次出现顺序，结果可复现。
+    """
+    if not predictions:
+        return False
+    normed = [_extract_answer(p, extractor) for p in predictions]
+    counts = Counter(normed)
+    top, _ = counts.most_common(1)[0]
+    return _norm_text(top) == _norm_text(gold)
+
+
+def pass_at_k(predictions: list[str], gold, extractor: str | None = None,
+              metric: str | None = None, **ctx) -> bool:
+    """n 条预测里任一答案正确即判对（k = len(predictions)）。
+
+    metric 可选：若提供则用该单采样 metric 逐条判分；否则用 extractor 抽答案后 EM 比对。
+    P1 会替换为无偏估计 (1 - C(n-c,n-k)/C(n,n))。
+    """
+    if not predictions:
+        return False
+    if metric:
+        fn = METRICS.get(metric)
+        if fn is None:
+            raise KeyError(f"metric not registered: {metric}")
+        return any(_to_bool(fn(p, gold, **ctx)) for p in predictions)
+    return any(_norm_text(_extract_answer(p, extractor)) == _norm_text(gold) for p in predictions)
+
+
+def aggregate_multisample(agg: str, predictions: list[str], gold,
+                          extractor: str | None = None, metric: str | None = None,
+                          **ctx) -> bool:
+    """runner 多采样分支统一入口。"""
+    if agg == "maj@1":
+        return maj_at_1(predictions, gold, extractor)
+    if agg == "pass@k":
+        return pass_at_k(predictions, gold, extractor, metric, **ctx)
+    raise ValueError(f"unknown aggregator: {agg}")
+
+
+def _to_bool(v) -> bool:
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return v >= 0.5
+    return bool(v)

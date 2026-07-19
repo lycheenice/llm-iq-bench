@@ -42,6 +42,7 @@ benchmarks:
     metric: exact_match_numeric
     answer_extractor: last_number
     prompt_template: reasoning_qa
+    aggregator: maj@1
     params: {temperature: 0.7, max_tokens: 2048, n: 4}
 
   reasoning_bbh:
