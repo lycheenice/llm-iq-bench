@@ -2,7 +2,58 @@
 
 > 本文件用于记录仓库进展，方便后续接力。按时间倒序追加新条目。
 
-## 2026-07-19 — web 数据源 + 字段规范化 + 多轮全量对比（P1）
+## 2026-07-19 晚 — A1/B1/P1 推进 4 步（逐步验证+提交）
+
+> 起点 commit `c123212`（3 轮多轮对比收尾后）。终点 commit `4c229da`。
+> 单测 78→90（+12），每步独立 commit + push，逐步验证，全量回归全绿。
+
+### A1. MGSM 下降趋势排查（commit `5356242`）
+
+读三轮 `samples.jsonl` 验证数据一致性：三轮 `qhash=7980` 完全一致 → 排除数据抽样 bug。
+逐题 verdict 对比：3 题稳定全对、8 题稳定全错、9 题边界方差。temp=0 仍有方差归因
+sglang 服务端非确定性。MGSM 方差大于 GSM8K 因法语非主语言边界题多。
+产物：`docs/mgsm_drift_investigation.md` 归因报告。
+
+### A2. AIME self-consistency 真实验证（commit `7c64cb0`）
+
+新增 `builtin:aime_2024`（3 题，整数 gold，避免 HF 依赖）。
+runner 扩展 `aggregator: [maj@1, pass@k]` list 双报：samples 写 `verdicts` dict + 
+`aggregators` list，outcome 加 `aggregators`/`n_per_aggregator` 字段；str 路径完全
+向后兼容。新增 `reasoning_aime_mini` benchmark + plan。
+真实 GLM-5.2 跑 3 题 n=4：maj@1=pass@k=1.000（简单题没差异，路径完整生效率）。
+单测 +3。
+
+### A3. pass@k 无偏估计 n=5（commit `35214cf`）
+
+`metrics.pass_at_k_unbiased(n,c,k)` Codex 论文公式 `1-C(n-c,k)/C(n,k)`，乘积展开
+避免阶乘大数；k=n 退化、单调、无效参数 5 单测验证公式核。
+`executors.run_code_exec` 支持 n>1 多采样：每题 `generate_n` + 逐条 sandbox，
+输出 `pass_at_1`(empirical c/n) + `pass@k`(unbiased) 双报；n=1 完全向后兼容。
+新增 `coding_humaneval_pass5`/`coding_mbpp_pass5` benchmark + plan。
+真实 GLM-5.2 跑 10 题 n=5：
+- HumanEval pass@1=0.72 / pass@5=1.000 ✓（无偏>empirical 符合理论）
+- MBPP pass@1=pass@5=0.30：Q0-Q2 全 5/5 通过、Q3-Q9 全 0/5 稳定失败，**强化 P0
+  MBPP 失败为确定性 prompt/sandbox 类型错（非随机失误）的结论**
+单测 +5。
+
+### B1. SUITE_TASK_DIR 动态化（commit `4c229da`）
+
+8 个 `suites/<dim>/definition.yaml` 均补 `benchmarks: [...]` 字段（按 dim 列出
+所有注册的 benchmark id）。`cli.py` 删 SUITE_TASK_DIR 死代码，`list` 子命令
+动态读 `definition.yaml.benchmarks` 显示每个套件的 benchmark 数与列表。
+单测 `test_suite_dynamic.py` 4 测：字段存在/合法/与 dim 一致/cli 输出。
+
+### 今晚总结
+- 关键路径全部经真实 GLM 验证：AIME 多采样 maj@1+pass@k 双报、HumanEval/MBPP pass@k 无偏估计
+- 已写但未验证代码全部扫清（P0-1 多采样、AIME n:4 死代码）
+- MGSM 下降趋势定论（消除可信度疑虑）
+- 技术债 SUITE_TASK_DIR 硬编码清理（配置驱动化）
+- 单测 78→90 全绿， ROADMAP P1 推进 4 项（pass@k 双报/AIME 双报/n_repeats/suite 动态化）
+
+### 接力提示
+- 剩余 P1: TruthfulQA MC1/MC2 需 `models.py:return_logprobs` 开关、MT-Bench 双裁判需 gpt-4o API（不可达，搁置）、datasets version 回填、composer
+- P2: 维度补全（knowledge/safety 需 parquet reader 或 CSV 镜像）、SWE-bench/GAIA 执行器
+- MBPP 0.411 的确定性失败模式（7/10 全 0/5）值得 P1 单独排查：可能 prompt template 对部分 MBPP 题类型不友好
 
 > 接首轮 glm_local_real。本轮目标：扩维度 + 多轮稳定性对比。
 

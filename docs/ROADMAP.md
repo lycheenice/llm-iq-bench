@@ -36,16 +36,27 @@
 
 验收（P0 收尾，已通过）：`run --plan plans/L0_smoke --model mock` 端到端跑通，`results/*/config_snapshot.yaml` 含 seed/git_hash/tier，AIME mock 多采样路径被走到，IFEval 在 builtin 样本上产出 score=0.5，全量 53/53 PASS。
 
-## P1（让"全面客观"到位，3–5 天）
+## P1（让"全面客观"到位，3–5 天）— **2026-07-19 晚推进 4 项**
+
+> 当晚新增 4 个 commit（A1→B1），起点 `c123212` → 终点 `4c229da`。单测 78→90（+12）。
 
 - TruthfulQA MC1/MC2 + `models.py:return_logprobs` 开关
 - MT-Bench 双裁判（gpt-4o + glm-local 互判）+ 一致率
-- `pass@k` 无偏估计：HumanEval/MBPP `n=5` 用 `generate_n`
-- AIME self-consistency 完整：`maj@1` + `pass@k` 双报
+- ✅ `pass@k` 无偏估计：HumanEval/MBPP `n=5` — A3 done（commit `35214cf`）
+  - `metrics.pass_at_k_unbiased(n,c,k)` Codex 公式 + `run_code_exec` 多采样路径
+  - 真实 GLM: HumanEval pass@1=0.72/pass@5=1.000 ✓; MBPP 0.30/0.30 印证失败为确定性
+- ✅ AIME self-consistency 完整：`maj@1` + `pass@k` 双报 — A2 done（commit `7c64cb0`）
+  - runner 支持 `aggregator: [maj@1, pass@k]` list 双报 + builtin:aime_2024 验证
 - `datasets.yaml` version 全部回填 commit hash；`scripts/download_datasets.py` 打印 hash
 - `composer.py` + `compose` 子命令；`datasets.yaml` 补 `cost_per_sample_sec`
-- `cli.py SUITE_TASK_DIR` 改从 `suites/<dim>/definition.yaml.benchmarks` 动态读（配置驱动）
-- `n_repeats` 整 run 复测 + `gen_summary_report` 方差段强制触发
+- ✅ `cli.py SUITE_TASK_DIR` 改从 `suites/<dim>/definition.yaml.benchmarks` 动态读 — B1 done（commit `4c229da`）
+- ✅ `n_repeats` 整 run 复测 + `gen_summary_report` 方差段强制触发 — 早 P1-web done（commit `80b8199`）
+
+附带产物：
+- ✅ A1 MGSM 下降趋势排查报告 `docs/mgsm_drift_investigation.md`（commit `5356242`） — 归因 sglang 服务端 temp=0 非确定性 + 法语非主语言边界题多
+- ✅ builtin:aime_2024 数据集（不依赖 HF，结构模仿 AIME）
+
+剩余 P1：TruthfulQA MC1/MC2（需 logprobs 开关）、MT-Bench 双裁判（需外部 gpt-4o API 不可达，搁置）、datasets version 回填、composer。
 
 ## 今晚执行计划（2026-07-19 晚，逐步验证+提交+推送）
 
@@ -79,8 +90,8 @@
 
 ### 收尾
 - 更新 `docs/devlog.md` 记录今晚进展
-- 全量回归 80+/N 单测绿
-- 全部 push 到 origin/main
+- 全量回归 80+/N 单测绿 — 实际 90/90 PASS（+12 新测）
+- 全部 push 到 origin/main — 6 commits (`0766559`→`5356242`→`7c64cb0`→`35214cf`→`4c229da`)
 
 ## P2（按需，重投入）
 
