@@ -15,7 +15,9 @@ reports/*.md
 !reports/template.md
 !reports/README.md
 !reports/comparison.md
+!reports/summary_report.md
 !reports/runs/
+!reports/assets/
 
 .env
 *.log

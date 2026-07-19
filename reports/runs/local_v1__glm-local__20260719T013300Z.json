@@ -1,18 +1,18 @@
 {
   "plan": "local_v1",
   "model": "glm-local",
-  "timestamp": "20260718T163755Z",
+  "timestamp": "20260719T013300Z",
   "tasks": {
     "coding_humaneval": {
       "metric": "pass_at_1",
-      "score": 0.8232,
+      "score": 0.8354,
       "n": 164,
       "total": 164,
       "benchmark": "coding_humaneval"
     },
     "coding_mbpp": {
       "metric": "pass_at_1",
-      "score": 0.09,
+      "score": 0.46,
       "n": 100,
       "total": 100,
       "benchmark": "coding_mbpp"
@@ -33,5 +33,5 @@
     }
   },
   "tag": null,
-  "run_dir": "results/local_v1_glm-local_20260718T163755Z"
+  "run_dir": "/home/lychee/mycode/llm-iq-bench/results/local_v1_glm-local_20260719T013300Z"
 }
