@@ -47,6 +47,41 @@
 - `cli.py SUITE_TASK_DIR` 改从 `suites/<dim>/definition.yaml.benchmarks` 动态读（配置驱动）
 - `n_repeats` 整 run 复测 + `gen_summary_report` 方差段强制触发
 
+## 今晚执行计划（2026-07-19 晚，逐步验证+提交+推送）
+
+> 起点 commit `c123212`（3 轮多轮对比已收尾，综合 0.717 极差 0.025）。
+> 目标：扫清"已写但未验证"代码 + 排查明显疑点，让现有 6 维度数据全部可信。
+> 节奏：每步独立 commit + push，每步前 78/78 单测绿，每步后回归仍 78/N 绿。
+
+### A1. 排查 MGSM 下降趋势（最高优先，~30min）
+- 现象：3 轮 MGSM 0.400→0.350→0.200 单调下降，是唯一明显趋势
+- 验证点：①`load_dataset_samples` seed=0 固定抽样是否三轮真的数据一致；②三轮 `samples.jsonl` 的 gold/id/order 对比；③若数据一致 → 服务端漂移；若不一致 → 抽样 bug
+- 产物：`docs/mgsm_drift_investigation.md` 归因报告
+- 提交点：归因报告 + 必要的修复
+
+### A2. AIME self-consistency 真实验证（~1h）
+- 现状：P0-1 的 `maj@1`/`pass@k` 多采样代码已写但 `glm_full_v2` 全 temp=0 没触发
+- 做法：新增 `plans/aime_selfconsistency/plan.yaml`（4 题，`temperature: 0.7, n: 4`），跑 GLM 真实验证
+- 验证点：`summary.json` 同时含 `maj_at_1` 和 `pass_at_k` 字段且数值合理
+- 提交点：plan + 真实 run 结果 + 必要的 bug 修复
+
+### A3. pass@k 无偏估计 n=5（~2h）
+- 现状：HumanEval/MBPP 现在 n=1，pass@1=0.867/0.411
+- 做法：HumanEval+MBPP 改 `n: 5, temperature: 0.7`，runner 输出 `maj@1`/`pass@5` 双报
+- 验证点：跑 GLM 真实，pass@5 ≥ pass@1，maj@1 与历史 pass@1 接近
+- 提交点：config 改动 + 真实 run + 报告段更新
+
+### B1. SUITE_TASK_DIR 动态化（技术债清理，~1.5h）
+- 现状：`cli.py:SUITE_TASK_DIR` 硬编码维度→目录映射，违背"配置驱动"
+- 做法：改从 `suites/<dim>/definition.yaml.benchmarks` 动态读
+- 验证点：新增单测 `test_suite_dynamic.py`，`list` 子命令行为不变
+- 提交点：实现 + 单测
+
+### 收尾
+- 更新 `docs/devlog.md` 记录今晚进展
+- 全量回归 80+/N 单测绿
+- 全部 push 到 origin/main
+
 ## P2（按需，重投入）
 
 - SWE-bench docker 执行器落地
