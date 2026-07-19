@@ -55,8 +55,9 @@ benchmarks:
   reasoning_bbh_navigate:
     dataset: bbh_navigate
     metric: exact_match_text
+    answer_extractor: boxed
     prompt_template: reasoning_qa
-    params: {temperature: 0, max_tokens: 512}
+    params: {temperature: 0, max_tokens: 2048}
 
   reasoning_arc:
     dataset: arc_challenge

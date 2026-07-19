@@ -18,7 +18,7 @@ except ImportError:
 from .config import load_models, load_datasets, load_benchmarks, load_suite, load_plan
 from .models import build_model_client, _mask_key
 from .datasets import load_dataset_samples
-from .metrics import compute_metric, aggregate_multisample
+from .metrics import compute_metric, aggregate_multisample, _boxed, _last_number
 from .prompts import render
 from . import executors
 
@@ -67,8 +67,8 @@ def _answer_extractor(pred: str, kind: str | None) -> str:
         m = re.findall(r"-?\d+\.?\d*", pred.replace(",", ""))
         return m[-1] if m else pred
     if kind == "boxed":
-        m = re.findall(r"\\boxed\{([^}]*)\}", pred)
-        return m[-1].strip() if m else pred
+        b = _boxed(pred)
+        return b if b is not None else pred
     return pred
 
 

@@ -22,8 +22,34 @@ def _last_number(text: str) -> str | None:
 
 
 def _boxed(text: str) -> str | None:
-    m = re.findall(r"\\boxed\{([^}]*)\}", text)
-    return m[-1].strip() if m else None
+    """提取最后一个 \\boxed{...} 内容，支持嵌套大括号与 \\text{...} 包裹。"""
+    out = []
+    i = 0
+    while True:
+        idx = text.find(r"\boxed{", i)
+        if idx < 0:
+            break
+        start = idx + len(r"\boxed{")
+        depth = 1
+        j = start
+        while j < len(text) and depth > 0:
+            if text[j] == '{':
+                depth += 1
+            elif text[j] == '}':
+                depth -= 1
+            j += 1
+        if depth == 0:
+            content = text[start:j-1]
+            out.append(content.strip())
+        i = j
+    if not out:
+        return None
+    ans = out[-1]
+    # 去除 \text{...} 包裹
+    m = re.match(r"\\text\{(.*)\}$", ans)
+    if m:
+        ans = m.group(1).strip()
+    return ans
 
 
 def accuracy_mc(prediction: str, gold, **ctx) -> bool:

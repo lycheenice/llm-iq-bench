@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from llm_iq_bench.config import load_models, load_datasets, load_benchmarks
-from llm_iq_bench.metrics import compute_metric
+from llm_iq_bench.metrics import compute_metric, _boxed
 from llm_iq_bench.models import build_model_client
 from llm_iq_bench.datasets import load_dataset_samples
 from llm_iq_bench.prompts import render
@@ -43,6 +43,15 @@ def test_metrics_numeric():
 def test_metrics_boxed():
     assert compute_metric("exact_match_boxed", r"\boxed{7}", "7") is True
     assert compute_metric("exact_match_boxed", r"so \boxed{81}", "81") is True
+
+
+def test_metrics_boxed_nested_and_text_wrapper():
+    # 嵌套大括号 + \text{} 包裹
+    assert _boxed(r"\boxed{\text{Yes}}") == "Yes"
+    assert _boxed(r"x \boxed{\text{No}} end") == "No"
+    assert _boxed(r"\boxed{42}") == "42"
+    assert _boxed(r"a \boxed{1} b \boxed{2}") == "2"  # 取最后一个
+    assert _boxed("no boxed here") is None
 
 
 def test_prompt_render_mc():
