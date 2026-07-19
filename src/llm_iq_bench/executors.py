@@ -39,6 +39,8 @@ def dispatch(runner_kind: str, runner, bench: dict, spec: dict, n, samples_file)
         return run_needle_gen(runner, bench, spec, n, samples_file)
     if runner_kind == "function_exec":
         return run_function_exec(runner, bench, spec, n, samples_file)
+    if runner_kind == "ifeval":
+        return run_ifeval(runner, bench, spec, n, samples_file)
     return {"skipped": True, "reason": f"unknown runner: {runner_kind}"}
 
 
@@ -463,3 +465,95 @@ def _eq(a, b) -> bool:
     if isinstance(a, (int, float)) and isinstance(b, (int, float)):
         return float(a) == float(b)
     return str(a) == str(b)
+
+
+# ============================ ifeval ============================
+
+def run_ifeval(runner, bench: dict, spec: dict, n, samples_file) -> dict:
+    """IFEval 指令遵循逐条校验。strict 为主分，loose 进 outcome 供参照。
+
+    score = Σpassed_instructions / Σtotal_instructions（跨样本所有指令计）。
+    """
+    from .datasets import load_dataset_samples
+    from .ifeval_checker import score_response
+    dataset_id = bench["dataset"]
+    fields = spec.get("fields", {})
+    try:
+        samples = load_dataset_samples(dataset_id, runner.datasets_cfg, n=n)
+    except Exception as e:
+        print(f"[skip] {bench.get('') or bench['dataset']}: 数据集加载失败 — {e}")
+        return {"skipped": True, "reason": f"dataset load failed: {type(e).__name__}: {e}"}
+
+    template = bench.get("prompt_template", "raw")
+    params = {k: v for k, v in bench.get("params", {}).items() if k != "concurrency"}
+    concurrency = _concurrency(bench, default=4)
+
+    def work(sample):
+        prompt = _render_raw(template, sample, fields)
+        err = None
+        try:
+            pred = runner.client.generate(prompt, **params)
+        except Exception as e:
+            pred = ""
+            err = f"{type(e).__name__}: {e}"
+        instructions = sample.get(fields.get("instructions", "instructions")) or sample.get("instructions") or []
+        # 字段映射兼容：HF 真实 IFEval 用 instruction_id_list + kwargs，需重建
+        if not instructions and sample.get("instruction_id_list"):
+            instructions = _rebuild_hf_instructions(sample)
+        strict_res = score_response(pred, instructions, strict=True)
+        loose_res = score_response(pred, instructions, strict=False)
+        rec = {
+            "benchmark": "ifeval_strict",
+            "dataset": dataset_id,
+            "prompt": prompt,
+            "prediction": pred,
+            "instructions": [{"id": d["id"]} for d in strict_res["details"]],
+            "strict_passed": strict_res["passed"],
+            "strict_total": strict_res["total"],
+            "strict_pass_rate": (strict_res["passed"] / strict_res["total"]) if strict_res["total"] else 0.0,
+            "loose_passed": loose_res["passed"],
+            "loose_total": loose_res["total"],
+            "verdict": (strict_res["passed"] == strict_res["total"]) if strict_res["total"] else False,
+        }
+        if err:
+            rec["error"] = err
+        return rec
+
+    records = _run_pool(work, samples, concurrency, desc="ifeval")
+    total_strict = sum(r["strict_total"] for r in records)
+    passed_strict = sum(r["strict_passed"] for r in records)
+    total_loose = sum(r["loose_total"] for r in records)
+    passed_loose = sum(r["loose_passed"] for r in records)
+    for r in records:
+        samples_file.write(json.dumps(r, ensure_ascii=False) + "\n")
+    samples_file.flush()
+    score = (passed_strict / total_strict) if total_strict else 0.0
+    score_loose = (passed_loose / total_loose) if total_loose else 0.0
+    return {
+        "metric": "ifeval_strict",
+        "score": round(score, 4),
+        "score_loose": round(score_loose, 4),
+        "n": len(records),
+        "total": len(samples),
+        "aggregator": "per_instruction",
+        "instructions_total": total_strict,
+    }
+
+
+def _render_raw(template: str, sample: dict, fields: dict) -> str:
+    if template == "raw":
+        return sample.get(fields.get("prompt", "prompt")) or sample.get("prompt") or ""
+    # 兜底走 prompts.render
+    from .prompts import render
+    return render(template, sample)
+
+
+def _rebuild_hf_instructions(sample: dict) -> list[dict]:
+    """HF 真实 IFEval：instruction_id_list + kwargs 重建为 [{instruction_id, kwargs}]。"""
+    ids = sample.get("instruction_id_list") or []
+    kwargs_list = sample.get("kwargs") or []
+    out = []
+    for i, iid in enumerate(ids):
+        kw = kwargs_list[i] if i < len(kwargs_list) else {}
+        out.append({"instruction_id": iid, "kwargs": kw})
+    return out

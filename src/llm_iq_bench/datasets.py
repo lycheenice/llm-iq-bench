@@ -46,7 +46,33 @@ def _load_builtin(repo: str) -> list[dict]:
             {"question": "3 的 4 次方是多少？", "answer": 81},
             {"question": "边长为 5 的正方形面积是多少？", "answer": 25},
         ]
+    if repo == "builtin:ifeval_mini":
+        return _ifeval_mini_samples()
     raise KeyError(f"unknown builtin dataset: {repo}")
+
+
+def _ifeval_mini_samples() -> list[dict]:
+    """8 条覆盖关键指令类型的 mini-IFEval 样本（离线验证执行器管道用）。"""
+    return [
+        {"prompt": "Say hello in one sentence.",
+         "instructions": [{"instruction_id": "length_constraint:num_sentences", "kwargs": {"num_sentences": 1}},
+                          {"instruction_id": "punctuation:no_comma", "kwargs": {}}]},
+        {"prompt": "List three colors as bullet points (one per line, numbered).",
+         "instructions": [{"instruction_id": "detectable_format:number_bullet_lists", "kwargs": {"num_bullets": 3}}]},
+        {"prompt": 'Return {"ok": true} as a JSON object.',
+         "instructions": [{"instruction_id": "detectable_format:json_format", "kwargs": {}}]},
+        {"prompt": "Write exactly 4 words.",
+         "instructions": [{"instruction_id": "length_constraint:num_words", "kwargs": {"num_words": 4}}]},
+        {"prompt": "Say something wrapped in double quotes.",
+         "instructions": [{"instruction_id": "startend:quotation", "kwargs": {}}]},
+        {"prompt": "Use Title Case for every word in your reply.",
+         "instructions": [{"instruction_id": "case:capital_word", "kwargs": {}}]},
+        {"prompt": "只用中文回答一句话。",
+         "instructions": [{"instruction_id": "language:chinese_only", "kwargs": {}}]},
+        {"prompt": "Introduce yourself briefly. No commas allowed.",
+         "instructions": [{"instruction_id": "length_constraint:num_sentences", "kwargs": {"num_sentences": 1}},
+                          {"instruction_id": "punctuation:no_comma", "kwargs": {}}]},
+    ]
 
 
 def _load_hf(spec: dict) -> list[dict]:

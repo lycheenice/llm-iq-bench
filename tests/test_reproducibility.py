@@ -47,19 +47,22 @@ def test_mask_key():
 # ---------- errored 标记 ----------
 
 def test_errored_outcome_for_unimplemented_metric():
-    """metric 是 ifeval_strict（NotImplementedError），无 runner → outcome errored。"""
+    """metric 是 truthfulqa_mc1（NotImplementedError），无 runner → outcome errored。
+
+    注：ifeval_strict 在 P0-5 后已有 runner=ifeval，不再适合做 errored 夹具；
+    改用 safety_truthfulqa（metric stub，无 runner）。
+    """
     bench_cfg = load_benchmarks()
-    # ifeval_strict 当前 metric 未实现，无 runner 字段
-    assert "ifeval_strict" in bench_cfg
+    assert "safety_truthfulqa" in bench_cfg
     r = Runner(model_id="mock", benchmarks_cfg=bench_cfg)
     with tempfile.TemporaryDirectory() as d:
         sf = Path(d) / "s.jsonl"
         with open(sf, "w", encoding="utf-8") as f:
-            outcome = r._run_one("ifeval_strict", 3, f)
+            outcome = r._run_one("safety_truthfulqa", 3, f)
         samples_text = sf.read_text(encoding="utf-8").strip()
-    assert outcome.get("errored") is True
+    assert outcome.get("errored") is True, f"应 errored: {outcome}"
     assert "reason" in outcome
-    assert "score" not in outcome or outcome.get("score") in (None, 0.0) and outcome.get("errored")
+    assert "score" not in outcome or outcome.get("score") in (None, 0.0)
     # samples 不应写出 errored 题目
     assert samples_text == ""
 

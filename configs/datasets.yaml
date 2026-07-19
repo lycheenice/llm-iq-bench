@@ -143,6 +143,16 @@ datasets:
     fields: {prompt: prompt, gold: instruction_id_list}
     n_default: 500
 
+  ifeval_mini:
+    dim: instruction_following
+    source: builtin
+    repo: builtin:ifeval_mini
+    split: demo
+    version: 1.0
+    license: MIT
+    fields: {prompt: prompt, instructions: instructions}
+    n_default: 8
+
   mt_bench:
     dim: instruction_following
     source: local
