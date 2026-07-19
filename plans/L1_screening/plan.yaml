@@ -1,15 +1,15 @@
 name: L1_screening
 tier: L1
-time_budget_min: 20
+time_budget_min: 15
 seed: 1234
-description: L1 快速初筛 — 8 维度各 1 代表任务，n=30，约 20 分钟，用于模型排序。
+description: L1 快速初筛 — 6 维度 8 代表任务全可跑（无 HF 依赖），n=20-30，约 15 分钟，用于模型排序与日常回归。覆盖 reasoning(coding) + coding + agent + long_context + instruction_following + multilingual 六维度；knowledge/safety 两维度待 P1 接入 web 镜像后补全。
 model: glm-local
 tasks:
-  - {benchmark: knowledge_mmlu,        n: 30}
-  - {benchmark: reasoning_gsm8k,       n: 30}
-  - {benchmark: coding_humaneval,      n: 30}
-  - {benchmark: ifeval_strict,         n: 30}
-  - {benchmark: safety_advbench,       n: 30}
-  - {benchmark: agent_bfcl,            n: 30}
-  - {benchmark: multilingual_mgsm,     n: 30}
-  - {benchmark: long_needle,           n: 9}
+  - {benchmark: reasoning_gsm8k,         n: 30}
+  - {benchmark: reasoning_bbh_navigate,  n: 20}
+  - {benchmark: coding_humaneval,        n: 30}
+  - {benchmark: coding_mbpp,             n: 30}
+  - {benchmark: agent_bfcl,              n: 30}
+  - {benchmark: long_needle,             n: 9}
+  - {benchmark: ifeval_mini_strict,      n: 8}
+  - {benchmark: multilingual_mgsm,       n: 20}

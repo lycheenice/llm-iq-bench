@@ -45,8 +45,12 @@ def test_L0_L1_L2_L3_tasks_resolve():
             assert bid in bench, f"{name} 引用未知 benchmark: {bid}"
 
 
-def test_L1_covers_8_dimensions():
-    """L1 应覆盖 8 个维度（8 维各 1 代表任务）。"""
+def test_L1_covers_runnable_dimensions():
+    """L1 实际可跑 6 维度（knowledge/safety 维度待 P1 接入 web 镜像补全）。
+
+    修订历史：原设计 8 维各 1 任务，但 mmlu/advbench/ifeval_strict 是 HF-only
+    不可达。改 6 维 8 任务全可跑（reasoning 2 + coding 2 + agent + long + ifeval + mgsm）。
+    """
     bench = load_benchmarks()
     datasets_cfg = __import__("llm_iq_bench.config", fromlist=["load_datasets"]).load_datasets()
     plan = _load_plan("L1_screening")
@@ -55,9 +59,14 @@ def test_L1_covers_8_dimensions():
         bid = t["benchmark"]
         ds = bench[bid]["dataset"]
         dims.add(datasets_cfg[ds]["dim"])
-    expected = {"knowledge", "reasoning", "coding", "instruction_following",
-                "safety", "agent", "multilingual", "long_context"}
+        # 硬约束：L1 全任务必须 source != huggingface（保证本机无 HF 库可跑）
+        assert datasets_cfg[ds]["source"] != "huggingface", \
+            f"L1 任务 {bid} 数据集 {ds} source=huggingface, 不可离线跑"
+    expected = {"reasoning", "coding", "instruction_following",
+                "agent", "multilingual", "long_context"}
     assert dims == expected, f"L1 维度覆盖不全: {dims ^ expected}"
+    # 至少 8 任务（reasoning/coding 各 2 + 其余各 1）
+    assert len(plan["tasks"]) >= 8, f"L1 任务数偏少: {len(plan['tasks'])}"
 
 
 def test_L0_smoke_runs_mock_endtoend():
