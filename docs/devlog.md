@@ -2,6 +2,53 @@
 
 > 本文件用于记录仓库进展，方便后续接力。按时间倒序追加新条目。
 
+## 2026-07-19 — P0 完成（多采样 / 配置冻结 / 分级 / IFEval）
+
+> 接前条规划。五项 P0 全部按「设计文档 → 单测 → 实现 → 验证 → 提交推送」落地。
+> 每项一个 commit，已推送 origin/main。全量 `python3 tests/_runner.py` 53/53 PASS。
+
+### P0-1 AIME 多采样修复（commit 27bc05f）
+- 设计 `docs/design/multi_sample.md`；单测 `tests/test_multi_sample.py` 8/8
+- `metrics.py` 加 `maj_at_1`/`pass_at_k`/`aggregate_multisample`（不注册 METRICS，签名接 list[str]）
+- `runner._run_one` 识别 `params.n>1` 调 `generate_n` + aggregator；`params` 用 dict() copy 防污染
+- `benchmarks.yaml reasoning_aime` 显式 `aggregator: maj@1`
+- 修复历史 bug：`n:4` 烧 4× token 却取 choices[0]
+
+### P0-2/3 可复现性（commit 1e69fad）
+- 设计 `docs/design/reproducibility.md`；单测 `tests/test_reproducibility.py` 11/11
+- `runner.run_plan` 写 `results/<run>/config_snapshot.yaml`（plan/models/datasets/benchmarks/git/seed/timestamp，api_key 脱敏）
+- seed 贯通：plan 顶层 `seed` > CLI > `_default_seed(plan_name)`；注入 `client.seed` 与每个 `bench.params.seed`
+- `models._openai_generate/_openai_tools` body 加 seed；mock 用 (prompt,seed) 哈希可复现
+- `_run_one` metric 未实现探针先于数据集加载 → `{errored:True}` 不计分、不写 samples
+- `reporter._scored_tasks` 剔除 skipped/errored；综合得分分母只算真正跑分
+
+### P0-4 测试分级 L0–L3（commit d64231f）
+- 设计 `docs/design/tiers.md`；单测 `tests/test_tiers.py` 4/4
+- 新建 `plans/L0_smoke`/`L1_screening`/`L2_standard`/`L3_deep`（tier/time_budget_min/seed）
+- 旧 plan 全部加 tier 标注（quick=L0, full=L2, chinese=L2, reasoning_deep=L3, local_v1=L1, coding_robust=L3, needle_stress=L3）
+- `methodology.md` 加「测试分级」矩阵章节（时间/用途/维度覆盖/n/温度/重复）
+- L1 覆盖 8 维各 1 代表；L3 含 SWE/GAIA/MT-Bench stub（未实现自动 errored/skipped 不阻塞）
+
+### P0-5 IFEval 执行器（commit 0516c66）
+- 设计 `docs/design/ifeval.md`；单测 `tests/test_ifeval.py` 15/15
+- 新增 `src/llm_iq_bench/ifeval_checker.py`：8 类指令校验（句数/词数/项目符号/JSON/无逗号/引号/Title Case/纯中文），strict+loose 两档，未识别 id 不崩
+- 新增 `executors.run_ifeval`：逐条校验，score=Σpassed/Σtotal（按指令计），loose 进 `score_loose`
+- `datasets.py` 加 `builtin:ifeval_mini`（8 条离线样本）；`datasets.yaml` 加 `ifeval_mini`
+- `benchmarks.yaml ifeval_strict` 加 `runner: ifeval` → instruction_following 维度从 errored 变可跑
+- mock+mini 端到端：8 样本/10 指令/score=0.5
+
+### 验收
+- `python3 tests/_runner.py` → 53/53 PASS（4 个测试文件）
+- `run --plan plans/L0_smoke --model mock` 端到端跑通，无 skip/errored，config_snapshot 含 tier=L0/seed=1234/git commit/runner_version
+- AIME 多采样路径被走到（samples 写 n_predictions）；IFEval 在 builtin 样本产出非零分
+- 现有 quick/local_v1 行为不变（向后兼容）
+
+### 接力提示（P0 后）
+- 单测两栖：`python3 tests/_runner.py`（无 pytest）= `make test`；4 文件 53 条
+- 每 run 必看 `config_snapshot.yaml` 确认可复现性（git dirty 标记需留意）
+- L1/L2/L3 真实跑分需 GLM 在线 + 数据集下载；P0 只保证结构与 L0 离线
+- P1 起点：composer / 数据集 version 回填 / TruthfulQA+MT-Bench 执行器 / pass@k 无偏估计
+
 ## 2026-07-19 — 完善规划与 P0 推进（设计→单测→实现→验证→提交）
 
 ### 背景

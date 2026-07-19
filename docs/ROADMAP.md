@@ -22,17 +22,19 @@
 | 缺 seed | params 无 seed，`_openai_generate` body 无 seed | temp>0 任务每次漂移，方差无法归因 |
 | 维度↔任务硬编码 | `cli.py:11-20 SUITE_TASK_DIR` | 新增维度要改核心，违背"配置驱动" |
 
-## P0（无外部依赖，立得住分级）— 本轮交付
+## P0（无外部依赖，立得住分级）— **已完成 2026-07-19**
 
-| # | 功能点 | 设计文档 | 关键改动 |
+五项全部按 设计→单测→实现→验证→提交 推送。全量 `python3 tests/_runner.py` 53/53 PASS。
+
+| # | 功能点 | 设计文档 | commit |
 |---|---|---|---|
-| P0-1 | AIME 多采样 maj@1/pass@k | `docs/design/multi_sample.md` | `runner._run_one` 识别 `n>1` 调 `generate_n`；`metrics` 加 `maj@1`；bench 加 `aggregator` 字段 |
-| P0-2 | 失败即响（errored≠0 分） | `docs/design/reproducibility.md` | `runner` 捕获 `NotImplementedError` 标 `errored:True`；reporter 综合得分分母剔除 errored/skipped |
-| P0-3 | run 配置冻结 + seed 贯通 | `docs/design/reproducibility.md` | `run_dir/config_snapshot.yaml` 落 plan+models+datasets+benchmarks+git_hash；plan 顶层 `seed` → `_openai_generate` body.seed |
-| P0-4 | L0–L3 分级 plan | `docs/design/tiers.md` | `plans/L0..L3/plan.yaml`；`methodology.md` 加分级矩阵；L0 仅 mock/内置；L1 8 维各 1 代表 |
-| P0-5 | IFEval 执行器 | `docs/design/ifeval.md` | `executors.run_ifeval` + `ifeval_checker`（strict/loose 两档）；builtin mini-IFEval 样本供离线验证 |
+| P0-1 | AIME 多采样 maj@1/pass@k | `docs/design/multi_sample.md` | `27bc05f` |
+| P0-2 | 失败即响（errored≠0 分） | `docs/design/reproducibility.md` | `1e69fad` |
+| P0-3 | run 配置冻结 + seed 贯通 | `docs/design/reproducibility.md` | `1e69fad` |
+| P0-4 | L0–L3 分级 plan | `docs/design/tiers.md` | `d64231f` |
+| P0-5 | IFEval 执行器 | `docs/design/ifeval.md` | `0516c66` |
 
-验收（P0 收尾）：`python scripts/run_benchmark.py run --plan plans/L0/plan.yaml --model mock` 端到端跑通，`results/*/config_snapshot.yaml` 存在且含 seed/git_hash，AIME mock 多采样路径被走到，IFEval 在 builtin 样本上产出非零分，全量 `_runner.py` 绿。
+验收（P0 收尾，已通过）：`run --plan plans/L0_smoke --model mock` 端到端跑通，`results/*/config_snapshot.yaml` 含 seed/git_hash/tier，AIME mock 多采样路径被走到，IFEval 在 builtin 样本上产出 score=0.5，全量 53/53 PASS。
 
 ## P1（让"全面客观"到位，3–5 天）
 
