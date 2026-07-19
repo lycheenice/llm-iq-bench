@@ -1,5 +1,7 @@
 name: quick
-description: 快速冒烟方案（可在 mock 模型 + 内置数据下离线跑通；真实模型取小样本）。
+tier: L0
+seed: 1234
+description: 快速冒烟方案（等价 L0_smoke；可在 mock 模型 + 内置数据下离线跑通；真实模型取小样本）。
 model: mock
 tasks:
   - {benchmark: demo_mc,  n: 6}

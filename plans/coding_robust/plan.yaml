@@ -1,4 +1,6 @@
 name: coding_robust
+tier: L3
+seed: 1234
 description: 编码能力鲁棒性 — temperature=0.2 下重跑 HumanEval+MBPP，与 baseline(temp=0) 对照看随机性影响。
 model: glm-local
 tasks:

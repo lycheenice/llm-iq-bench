@@ -64,6 +64,30 @@
 - 固定 `seed`，温度需为 0 的任务强制 `temperature=0`。
 - 记录数据集 `version`（HF commit / 下载日期）与模型 `version`（API snapshot 或权重 hash）。
 - prompt 模板随结果一并落盘。
+- 每次 run 在 `results/<run>/config_snapshot.yaml` 冻结 plan+models+datasets+benchmarks+git commit+seed。
+
+## 测试分级 (L0–L3)
+
+按时间预算×样本量×维度覆盖分四级，plan 顶层 `tier` 字段声明。同 tier + 同 seed + 同数据集版本的结果才可跨模型直接对比。
+
+| 级别 | 时间 | 用途 | 维度覆盖 | 每任务 n | 温度 | 重复 | 对应 plan |
+|---|---|---|---|---|---|---|---|
+| **L0 smoke** | <1 min | 离线冒烟/CI | knowledge+reasoning demo only | 6 | 0 | 1 | `plans/L0_smoke`（=`quick`） |
+| **L1 screening** | ~20 min | 快速排序/初筛 | 8 维各 1 代表任务 | 30 | 0（AIME 0.7×4） | 1 | `plans/L1_screening` |
+| **L2 standard** | ~2 h | 正式对比基准 | 8 维全量代表集 | 200–500 | 0（AIME 0.7×4） | 1 | `plans/L2_standard`（=`full`） |
+| **L3 deep** | ≥8 h | 深度/天花板 | L2 + SWE-bench + GAIA + MT-Bench + 多语言全集 | 全量 n_default | 含 t=0.2 鲁棒性 | 3 | `plans/L3_deep` |
+
+### 各级适用场景
+- **L0**：验证框架可跑、CI 冒烟、回归测试。零网络零依赖。
+- **L1**：拿到新模型先跑 L1 排个序，决定是否值得投入 L2。20 分钟内出结果。
+- **L2**：正式横向对比的口径；论文/汇报数据用这级。所有维度代表任务，样本量足够稳定。
+- **L3**：深度评估，含 SWE-bench/GAIA 等重任务，需 docker/agent 环境；多轮复测报方差。
+
+### L1 代表任务（8 维各 1）
+`knowledge_mmlu` / `reasoning_gsm8k` / `coding_humaneval` / `ifeval_strict` / `safety_advbench` / `agent_bfcl` / `multilingual_mgsm` / `long_needle`
+
+### 灵活组合
+P1 将提供 `compose` 子命令：按 `--time-budget` + `--dimensions` 动态产 plan。当前可手改 L1/L2 plan 或用 CLI `--n` 覆盖样本数。
 
 ## 结果解读
 

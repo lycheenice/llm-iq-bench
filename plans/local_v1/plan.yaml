@@ -1,4 +1,6 @@
 name: local_v1
+tier: L1
+seed: 1234
 description: 本机 GLM-5.2 第一版评测：编码能力(HumanEval+MBPP) + 长程函数调用(BFCL) + 长上下文大海捞针。
 model: glm-local
 tasks:

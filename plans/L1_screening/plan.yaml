@@ -1,0 +1,15 @@
+name: L1_screening
+tier: L1
+time_budget_min: 20
+seed: 1234
+description: L1 快速初筛 — 8 维度各 1 代表任务，n=30，约 20 分钟，用于模型排序。
+model: glm-local
+tasks:
+  - {benchmark: knowledge_mmlu,        n: 30}
+  - {benchmark: reasoning_gsm8k,       n: 30}
+  - {benchmark: coding_humaneval,      n: 30}
+  - {benchmark: ifeval_strict,         n: 30}
+  - {benchmark: safety_advbench,       n: 30}
+  - {benchmark: agent_bfcl,            n: 30}
+  - {benchmark: multilingual_mgsm,     n: 30}
+  - {benchmark: long_needle,           n: 9}

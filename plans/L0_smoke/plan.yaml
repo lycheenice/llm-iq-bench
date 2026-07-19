@@ -1,0 +1,9 @@
+name: L0_smoke
+tier: L0
+time_budget_min: 1
+seed: 1234
+description: L0 离线冒烟 — mock + 内置数据，零网络/零 HF/零 docker，CI 可跑。
+model: mock
+tasks:
+  - {benchmark: demo_mc,  n: 6}
+  - {benchmark: demo_qa,  n: 6}

@@ -1,5 +1,7 @@
 name: full
-description: 全维度全量正式评测（需 API key / 推理服务 + 数据集下载）。
+tier: L2
+seed: 1234
+description: 全维度全量正式评测（等价 L2 的英文 cloud 版本；需 API key / 推理服务 + 数据集下载）。
 model: gpt-4o-mini
 tasks:
   - {benchmark: knowledge_mmlu,      n: 500}

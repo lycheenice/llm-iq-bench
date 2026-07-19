@@ -1,0 +1,29 @@
+name: L3_deep
+tier: L3
+time_budget_min: 480
+seed: 1234
+description: L3 深度/天花板 — L2 基础上加 SWE-bench/GAIA/MT-Bench/TruthfulQA/LongBench，全量 n_default，含 t=0.2 鲁棒性，n_repeats=3。stub 任务在 runner 未实现前自动 errored/skipped，不阻塞其余。
+model: glm-local
+tasks:
+  - {benchmark: knowledge_mmlu,        n: 500}
+  - {benchmark: knowledge_mmlu_pro,    n: 500}
+  - {benchmark: knowledge_gpqa,        n: 200}
+  - {benchmark: reasoning_gsm8k,       n: 500}
+  - {benchmark: reasoning_math,        n: 500}
+  - {benchmark: reasoning_aime,        n: 30}
+  - {benchmark: reasoning_bbh,         n: 300}
+  - {benchmark: coding_humaneval,      n: 164}
+  - {benchmark: coding_mbpp,           n: 500}
+  - {benchmark: coding_livecodebench,  n: 200}
+  - {benchmark: coding_swe_bench,      n: 100}
+  - {benchmark: ifeval_strict,         n: 500}
+  - {benchmark: mt_bench,              n: 80}
+  - {benchmark: safety_truthfulqa,     n: 500}
+  - {benchmark: safety_advbench,       n: 500}
+  - {benchmark: safety_xstest,         n: 250}
+  - {benchmark: safety_bbq,            n: 500}
+  - {benchmark: agent_bfcl,            n: 500}
+  - {benchmark: agent_gaia,            n: 100}
+  - {benchmark: multilingual_mgsm,     n: 500}
+  - {benchmark: long_longbench,        n: 200}
+  - {benchmark: long_needle,           n: 50}

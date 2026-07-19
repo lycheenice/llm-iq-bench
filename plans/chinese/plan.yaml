@@ -1,4 +1,6 @@
 name: chinese
+tier: L2
+seed: 1234
 description: 中文能力专项（知识 + 推理 + 安全中文题）。
 model: qwen2.5-7b-instruct
 tasks:

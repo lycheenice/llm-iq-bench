@@ -1,4 +1,6 @@
 name: reasoning_deep
+tier: L3
+seed: 1234
 description: 推理深度专项（数学天花板 + 难推理）。
 model: gpt-4o
 tasks:

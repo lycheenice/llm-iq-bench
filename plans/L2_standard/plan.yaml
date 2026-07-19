@@ -1,0 +1,19 @@
+name: L2_standard
+tier: L2
+time_budget_min: 120
+seed: 1234
+description: L2 正式对比基准 — 8 维全量代表集，n=200–500，约 2 小时，跨模型对比的标准口径。
+model: glm-local
+tasks:
+  - {benchmark: knowledge_mmlu,        n: 500}
+  - {benchmark: knowledge_gpqa,        n: 200}
+  - {benchmark: reasoning_gsm8k,       n: 500}
+  - {benchmark: reasoning_aime,        n: 30}
+  - {benchmark: coding_humaneval,      n: 164}
+  - {benchmark: coding_mbpp,           n: 500}
+  - {benchmark: ifeval_strict,         n: 500}
+  - {benchmark: safety_advbench,       n: 500}
+  - {benchmark: safety_xstest,         n: 250}
+  - {benchmark: agent_bfcl,            n: 200}
+  - {benchmark: multilingual_mgsm,     n: 500}
+  - {benchmark: long_needle,           n: 50}

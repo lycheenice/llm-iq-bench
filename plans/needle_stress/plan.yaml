@@ -1,4 +1,6 @@
 name: needle_stress
+tier: L3
+seed: 1234
 description: 长上下文压力测试 — 探测 GLM-5.2 (300k context) 在 64k/128k/200k 长度、多深度下的大海捞针能力极限。
 model: glm-local
 tasks:
